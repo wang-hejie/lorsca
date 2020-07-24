@@ -27,7 +27,7 @@ print(f'species = {species}\n'
       f'tools = {tools}\n'
       f'company = {company}\n'
       f'assembler = {assembler}')
-scripts_path = r'/home/wanghejie/biotools/scripts'
+scripts_path = r'./scripts'
 
 subprocess.call(f'bash {scripts_path}/correct.sh {species} {folds} {tools} {company}', shell=True)
 subprocess.call(f'bash {scripts_path}/assemble.sh {species} {folds} {tools} {company} {assembler}', shell=True)
