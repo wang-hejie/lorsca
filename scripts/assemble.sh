@@ -24,7 +24,7 @@ standard_assemble_file_name="contig.fasta"
 corrected_reads_file="$home/experience/"$species"_"$folds"/$tools/correct/corrected_longreads.fasta"  # 纠错后reads文件
 
 #scripts path
-scripts_path="/home/wanghejie/biotools/scripts"
+scripts_path="."
 
 
 #########################################

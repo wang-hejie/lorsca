@@ -34,7 +34,7 @@ fi
 cd $experience_dir
 
 #scripts path
-scripts_path="/home/wanghejie/biotools/scripts"
+scripts_path="."
 
 
 #########################################
