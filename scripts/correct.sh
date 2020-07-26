@@ -24,7 +24,7 @@ experience_dir="$home/experience/"$species"_"$folds"/$tools/correct"  # 执行�
 standard_corrected_file_name="corrected_longreads.fasta"  # 纠错后reads文件的存储名
 
 #scripts path
-scripts_path="."
+scripts_path="$(cd `dirname $0`; pwd)"
 
 
 #########################################

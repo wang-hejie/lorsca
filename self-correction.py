@@ -5,6 +5,7 @@
 
 import argparse
 import subprocess
+import os
 
 
 parser = argparse.ArgumentParser(description='Automate self-correcting workflow scripts. '
@@ -27,8 +28,9 @@ print(f'species = {species}\n'
       f'tools = {tools}\n'
       f'company = {company}\n'
       f'assembler = {assembler}')
-scripts_path = r'./scripts'
+script_path = os.path.abspath(__file__)  # 软件根目录/self-correction.py
+software_path = os.path.abspath(os.path.dirname(script_path) + os.path.sep + ".")  # 软件根目录
 
-subprocess.call(f'bash {scripts_path}/correct.sh {species} {folds} {tools} {company}', shell=True)
-subprocess.call(f'bash {scripts_path}/assemble.sh {species} {folds} {tools} {company} {assembler}', shell=True)
-subprocess.call(f'bash {scripts_path}/count.sh {species} {folds} {tools}', shell=True)
+subprocess.call(f'bash {software_path}/scripts/correct.sh {species} {folds} {tools} {company}', shell=True)
+subprocess.call(f'bash {software_path}/scripts/assemble.sh {species} {folds} {tools} {company} {assembler}', shell=True)
+subprocess.call(f'bash {software_path}/scripts/count.sh {species} {folds} {tools}', shell=True)

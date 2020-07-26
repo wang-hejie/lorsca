@@ -34,7 +34,7 @@ fi
 cd $experience_dir
 
 #scripts path
-scripts_path="."
+scripts_path="$(cd `dirname $0`; pwd)"
 
 
 #########################################
