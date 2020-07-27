@@ -2,7 +2,7 @@
 
 #########################################
 #  $1: species - ecoli, scere
-#  $2: folds - 10x, 30x, 50x, 75x, 100x
+#  $2: folds - 10, 30, 50, 75, 100
 #  $3: tools - mecat2, falcon, lorma, canu, pbcr
 #  $4: company - pacbio, ont
 #  $5: assembler - miniasm

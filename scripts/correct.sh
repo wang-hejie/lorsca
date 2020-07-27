@@ -2,8 +2,8 @@
 
 #########################################
 #  $1: species - ecoli, scere
-#  $2: folds - 10x, 30x, 50x, 75x, 100x
-#  $3: tools - mecat2, falcon, lorma, canu, pbcr
+#  $2: folds - 10, 30, 50, 75, 100
+#  $3: tools - mecat2, falcon, lorma, canu, pbcr, flas
 #  $4: company - pacbio, ont
 #  (all varaibles are converted to the lower cases)
 #########################################
@@ -18,8 +18,8 @@ echo "------------------"$tools"-------------------"
 # set paths
 #########################################
 home="/home/wanghejie"
-raw_file_fa="/HDD1/wanghejie/datasets/Reads/$species/raw_longreads_$folds.fasta"  # 原始long reads的fasta
-raw_file_fq="/HDD1/wanghejie/datasets/Reads/$species/raw_longreads_$folds.fastq"  # 原始long reads的fastq
+raw_file_fa="/HDD1/wanghejie/datasets/Reads/$species/raw_longreads_"$folds"x.fasta"  # 原始long reads的fasta
+raw_file_fq="/HDD1/wanghejie/datasets/Reads/$species/raw_longreads_"$folds"x.fastq"  # 原始long reads的fastq
 experience_dir="$home/experience/"$species"_"$folds"/$tools/correct"  # 执行纠错及保存纠错后reads文件的目录
 standard_corrected_file_name="corrected_longreads.fasta"  # 纠错后reads文件的存储名
 
@@ -69,6 +69,12 @@ if [ $tools == "canu" ]
         source deactivate
         conda activate canu
 fi
+
+# 5. pbcr
+# 直接调用PBcR即可
+
+# 6. flas
+flas_path="/home/wanghejie/biotools/FLAS"
 
 
 #########################################
@@ -173,7 +179,7 @@ elif [ $tools == "falcon" ]
         echo "length_cutoff=500" >> $cfg_file  # 注意此变量，不设置seed_coverage只设置length_cutoff可以防止bug
         echo "pa_HPCdaligner_option=-v -B128 -M24" >> $cfg_file
         echo "pa_daligner_option=-e.8 -l2000 -k18 -h480  -w8 -s100" >> $cfg_file
-        echo "falcon_sense_option=--output-multi --min-idt 0.70 --min-cov 2 --max-n-read 1800" >> $config_file
+        echo "falcon_sense_option=--output-multi --min-idt 0.70 --min-cov 2 --max-n-read 1800" >> $cfg_file
         echo "falcon_sense_greedy=False" >> $cfg_file
         echo "" >> $cfg_file
         echo "####Pread overlapping" >> $cfg_file
@@ -195,7 +201,7 @@ elif [ $tools == "falcon" ]
         echo -e "#### End: init "$cfg_file" ####\n"
 
         echo "#### Start: init "$fofn_file" ####"
-        echo "/HDD1/wanghejie/datasets/Reads/"$species"/raw_longreads_$folds.fasta" > $fofn_file
+        echo $raw_file_fa > $fofn_file
         echo -e "#### End: init "$fofn_file" ####\n"
 
         # 运行falcon纠错
@@ -288,6 +294,25 @@ elif [ $tools == "pbcr" ]
         echo "#### Start: mv $species$folds.fasta $standard_corrected_file_name ####"
         mv $species$folds.fasta $standard_corrected_file_name
         echo -e "#### End: $species$folds.fasta $standard_corrected_file_name ####\n"
+
+
+
+####6. flas####
+elif [ $tools == "flas" ]
+    then
+        # 执行flas纠错
+        echo -e "\e[1;32m #### "$tools" correct step 1/2: correct #### \e[0m"
+        echo "#### Start: python $flas_path/runFLAS.py $raw_file_fq -c $folds ####"
+        perl $scripts_path/memory3.pl memoryrecord "python $flas_path/runFLAS.py $raw_file_fa -c $folds"
+        echo -e "#### End: python $flas_path/runFLAS.py $raw_file_fq -c $folds ####\n"
+
+        # 标准化校正数据文件名
+        # 所有工具的校正后长读，均在其实验目录的/correct目录下，名称为corrected_longreads.fasta
+        echo -e "\e[1;32m #### "$tools" correct step 2/2: standard corrected reads file name #### \e[0m"
+        echo "#### Start: mv $experience_dir/output/split_reads.fasta $experience_dir/$standard_corrected_file_name ####"
+        mv $experience_dir/output/split_reads.fasta $experience_dir/$standard_corrected_file_name
+        echo -e "#### End: mv $experience_dir/output/split_reads.fasta $experience_dir/$standard_corrected_file_name ####\n"
+
 
 else
     echo -e "\e[1;31m #### Error: $tools NOT EXIST! #### \e[0m"  # Error

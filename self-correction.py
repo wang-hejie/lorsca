@@ -11,8 +11,8 @@ import os
 parser = argparse.ArgumentParser(description='Automate self-correcting workflow scripts. '
                                              'workflow: correct->assemble->count')
 parser.add_argument('-s', '--species', type=str, help='ecoli, scere')
-parser.add_argument('-f', '--folds', type=str, help='10x, 30x, 50x, 75x, 100x')
-parser.add_argument('-t', '--tools', type=str, help='mecat2, falcon, lorma, canu, pbcr')
+parser.add_argument('-f', '--folds', type=str, help='10, 30, 50, 75, 100')
+parser.add_argument('-t', '--tools', type=str, help='mecat2, falcon, lorma, canu, pbcr, flas')
 parser.add_argument('-c', '--company', type=str, default='pacbio', help='pacbio, ont')
 parser.add_argument('-a', '--assembler', type=str, default='miniasm', help='miniasm')
 args = parser.parse_args()
