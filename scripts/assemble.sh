@@ -2,7 +2,7 @@
 
 #########################################
 #  $1: species - ecoli, scere
-#  $2: folds - 10x, 30x, 50x, 75x, 100x
+#  $2: folds - 10, 30, 50, 75, 100
 #  $3: tools - mecat2, falcon, lorma, canu, pbcr
 #  $4: company - pacbio, ont
 #  $5: assembler - miniasm
@@ -24,7 +24,7 @@ standard_assemble_file_name="contig.fasta"
 corrected_reads_file="$home/experience/"$species"_"$folds"/$tools/correct/corrected_longreads.fasta"  # 纠错后reads文件
 
 #scripts path
-scripts_path="/home/wanghejie/biotools/scripts"
+scripts_path="$(cd `dirname $0`; pwd)"
 
 
 #########################################

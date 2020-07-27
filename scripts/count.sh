@@ -2,7 +2,7 @@
 
 #########################################
 #  $1: species - ecoli, scere
-#  $2: folds - 10x, 30x, 50x, 75x, 100x
+#  $2: folds - 10, 30, 50, 75, 100
 #  $3: tools - mecat2, falcon, lorma, canu, pbcr
 #  (all varaibles are converted to the lower cases)
 #########################################
@@ -34,7 +34,7 @@ fi
 cd $experience_dir
 
 #scripts path
-scripts_path="/home/wanghejie/biotools/scripts"
+scripts_path="$(cd `dirname $0`; pwd)"
 
 
 #########################################
