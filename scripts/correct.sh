@@ -3,7 +3,7 @@
 #########################################
 #  $1: species - ecoli, scere
 #  $2: folds - 10, 30, 50, 75, 100
-#  $3: tools - mecat2, falcon, lorma, canu, pbcr, flas
+#  $3: tools - mecat2, falcon, lorma, canu, pbcr, flas, consent
 #  $4: company - pacbio, ont
 #  (all varaibles are converted to the lower cases)
 #########################################
@@ -75,6 +75,9 @@ fi
 
 # 6. flas
 flas_path="/home/wanghejie/biotools/FLAS"
+
+# 7. consent
+# 直接调用CONSENT-correct即可
 
 
 #########################################
@@ -312,6 +315,26 @@ elif [ $tools == "flas" ]
         echo "#### Start: mv $experience_dir/output/split_reads.fasta $experience_dir/$standard_corrected_file_name ####"
         mv $experience_dir/output/split_reads.fasta $experience_dir/$standard_corrected_file_name
         echo -e "#### End: mv $experience_dir/output/split_reads.fasta $experience_dir/$standard_corrected_file_name ####\n"
+
+
+
+####7. consent####
+elif [ $tools == "consent" ]
+    then
+        if [ $company == "Pacbio" ]
+            then
+                type="PB"
+            else
+                type="ONT"
+        fi
+
+        # 执行consent纠错
+        # CONSENT可以设置输出文件名，因此可省略标准化文件名步骤
+        echo -e "\e[1;32m #### "$tools" correct step 1/1: correct #### \e[0m"
+        echo "#### Start: CONSENT-correct --in $raw_file_fa --out $standard_corrected_file_name --type $type ####"
+        perl $scripts_path/memory3.pl memoryrecord "CONSENT-correct --in $raw_file_fa --out $standard_corrected_file_name --type $type"
+        echo -e "#### End: CONSENT-correct --in $raw_file_fa --out $standard_corrected_file_name --type $type ####\n"
+
 
 
 else

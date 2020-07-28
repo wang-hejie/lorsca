@@ -3,8 +3,9 @@ import subprocess
 scripts_path = r'/home/wanghejie/biotools/scripts'
 
 species_list = ['ecoli', 'scere']
-folds_list = ['10', '30', '50', '75', '100']
-tools_list = ['mecat2', 'falcon', 'lorma', 'canu', 'pbcr']
+# folds_list = ['10', '30', '50', '75', '100']
+folds_list = ['30']
+tools_list = ['mecat2', 'falcon', 'lorma', 'canu', 'pbcr','flas', 'consent']
 company_list = ['pacbio', 'ont']
 assembler_list = ['miniasm']
 
