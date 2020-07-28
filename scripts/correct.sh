@@ -321,7 +321,7 @@ elif [ $tools == "flas" ]
 ####7. consent####
 elif [ $tools == "consent" ]
     then
-        if [ $company == "Pacbio" ]
+        if [ $company == "pacbio" ]
             then
                 type="PB"
             else
