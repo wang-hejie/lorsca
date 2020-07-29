@@ -3,7 +3,7 @@
 #########################################
 #  $1: species - ecoli, scere
 #  $2: folds - 10, 30, 50, 75, 100
-#  $3: tools - mecat2, falcon, lorma, canu, pbcr
+#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent
 #  (all varaibles are converted to the lower cases)
 #########################################
 species="$(echo $1 | tr '[:upper:]' '[:lower:]')"
@@ -19,6 +19,7 @@ experience_dir="$home/experience/"$species"_"$folds"/$tools"  # 执行统计的�
 dnadiff_dir="$experience_dir/dnadiff_result"  # 执行dnadiff的目录
 blasr_dir="$experience_dir/blasr_result"  # 执行blasr的目录
 quast_dir="$experience_dir/quast_result"  # 执行quast的目录
+raw_file_fa="$experience_dir/raw_data/raw_longreads_"$folds"x.fasta"  # 原始long reads的fasta
 corrected_reads_file="$experience_dir/correct/corrected_longreads.fasta"  # 纠错后reads文件
 contig_file="$experience_dir/assemble/contig.fasta"  # 组装产生的contig文件
 
@@ -57,14 +58,22 @@ for i in ${dir[@]}
 #########################################
 # collecing performance of the tools 
 #########################################
+# set file to be counted
+if [ $tools == "raw" ]
+    then
+        count_file=$raw_file_fa
+else
+    count_file=$corrected_reads_file
+fi
+
 #### dnadiff ####
 # aarl, iden, cov
 cd $dnadiff_dir
 
 echo -e "\e[1;32m #### "$tools" count step 1/3: dnadiff #### \e[0m"
-echo "#### Start: dnadiff $ref_file_fna $corrected_reads_file ####"
-dnadiff $ref_file_fna $corrected_reads_file
-echo -e "#### End: dnadiff $ref_file_fna $corrected_reads_file ####\n"
+echo "#### Start: dnadiff $ref_file_fna $count_file ####"
+dnadiff $ref_file_fna $count_file
+echo -e "#### End: dnadiff $ref_file_fna $count_file ####\n"
 echo "#### Start: mv out.report dnadiff_output.txt ####"
 mv out.report dnadiff_output.txt
 echo -e "#### End: mv out.report dnadiff_output.txt ####\n"
@@ -77,9 +86,9 @@ conda activate blasr
 cd $blasr_dir
 
 echo -e "\e[1;32m #### "$tools" count step 2/3: blasr #### \e[0m"
-echo "#### Start: blasr $corrected_reads_file $ref_file_fna --nproc 16 -m 5 ####"
-blasr $corrected_reads_file $ref_file_fna --nproc 16 -m 5 > blasr_output.txt 2>&1
-echo -e "#### End: blasr $corrected_reads_file $ref_file_fna --nproc 16 -m 5 ####\n"
+echo "#### Start: blasr $count_file $ref_file_fna --nproc 16 -m 5 ####"
+blasr $count_file $ref_file_fna --nproc 16 -m 5 > blasr_output.txt 2>&1
+echo -e "#### End: blasr $count_file $ref_file_fna --nproc 16 -m 5 ####\n"
 echo "#### Start: python3 $scripts_path/py_count/py_count.py $species $folds $tools ####"
 python3 $scripts_path/py_count/py_count.py $species $folds $tools
 echo -e "#### End: python3 $scripts_path/py_count/py_count.py $species $folds $tools ####\n"

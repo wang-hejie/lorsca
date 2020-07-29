@@ -3,7 +3,7 @@
 #########################################
 #  $1: species - ecoli, scere
 #  $2: folds - 10, 30, 50, 75, 100
-#  $3: tools - mecat2, falcon, lorma, canu, pbcr, flas, consent
+#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent
 #  $4: company - pacbio, ont
 #  (all varaibles are converted to the lower cases)
 #########################################
@@ -18,9 +18,16 @@ echo "------------------"$tools"-------------------"
 # set paths
 #########################################
 home="/home/wanghejie"
-raw_file_fa="/HDD1/wanghejie/datasets/Reads/$species/raw_longreads_"$folds"x.fasta"  # 原始long reads的fasta
-raw_file_fq="/HDD1/wanghejie/datasets/Reads/$species/raw_longreads_"$folds"x.fastq"  # 原始long reads的fastq
-experience_dir="$home/experience/"$species"_"$folds"/$tools/correct"  # 执行纠错及保存纠错后reads文件的目录
+standard_raw_fa_name="raw_longreads_"$folds"x.fasta"
+standard_raw_fq_name="raw_longreads_"$folds"x.fastq"
+raw_file_fa="/HDD1/wanghejie/datasets/Reads/$species/$standard_raw_fa_name"  # 原始long reads的fasta
+raw_file_fq="/HDD1/wanghejie/datasets/Reads/$species/$standard_raw_fq_name"  # 原始long reads的fastq
+if [ $tools == "raw" ]
+    then
+        experience_dir="$home/experience/"$species"_"$folds"/$tools/raw_data"
+else
+    experience_dir="$home/experience/"$species"_"$folds"/$tools/correct"  # 执行纠错及保存纠错后reads文件的目录
+fi
 standard_corrected_file_name="corrected_longreads.fasta"  # 纠错后reads文件的存储名
 
 #scripts path
@@ -94,8 +101,19 @@ fi
 #########################################
 # Running the tools 
 #########################################
-####1. mecat2####
-if [ $tools == "mecat2" ]
+####1. raw####
+if [ $tools == "raw" ]
+    then
+        echo -e "\e[1;32m #### Skip the error correction and go straight to assembly. #### \e[0m"
+        echo "#### Start: ln -s "$raw_file_fa" "$experience_dir/$standard_raw_fa_name" ####"
+        ln -s "$raw_file_fa" "$experience_dir/$standard_raw_fa_name"
+        echo -e "#### End: ln -s "$raw_file_fa" "$experience_dir/$standard_raw_fa_name" ####\n"
+        echo -e "\n"
+
+
+
+####2. mecat2####
+elif [ $tools == "mecat2" ]
     then
         config_file=""$experience_dir"/"$species"_config_file.txt"
 
@@ -149,7 +167,7 @@ if [ $tools == "mecat2" ]
 
 
 
-####2. falcon####
+####3. falcon####
 elif [ $tools == "falcon" ]
     then
         cfg_file=""$experience_dir"/fc_run_"$species""$folds".cfg"
@@ -229,7 +247,7 @@ elif [ $tools == "falcon" ]
 
 
 
-####3. lorma####
+####4. lorma####
 elif [ $tools == "lorma" ]
     then
         # 运行lorma纠错
@@ -247,7 +265,7 @@ elif [ $tools == "lorma" ]
 
 
 
-####4. canu####
+####5. canu####
 elif [ $tools == "canu" ]
     then
         # 运行canu纠错
@@ -268,7 +286,7 @@ elif [ $tools == "canu" ]
 
 
 
-####5. pbcr####
+####6. pbcr####
 elif [ $tools == "pbcr" ]
     then
         config_file=""$experience_dir"/"$company".spec"
@@ -300,7 +318,7 @@ elif [ $tools == "pbcr" ]
 
 
 
-####6. flas####
+####7. flas####
 elif [ $tools == "flas" ]
     then
         # 执行flas纠错
@@ -318,7 +336,7 @@ elif [ $tools == "flas" ]
 
 
 
-####7. consent####
+####8. consent####
 elif [ $tools == "consent" ]
     then
         if [ $company == "pacbio" ]
