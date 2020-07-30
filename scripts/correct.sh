@@ -3,7 +3,7 @@
 #########################################
 #  $1: species - ecoli, scere
 #  $2: folds - 10, 30, 50, 75, 100
-#  $3: tools - mecat2, falcon, lorma, canu, pbcr, flas, consent
+#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord
 #  $4: company - pacbio, ont
 #  (all varaibles are converted to the lower cases)
 #########################################
@@ -18,9 +18,16 @@ echo "------------------"$tools"-------------------"
 # set paths
 #########################################
 home="/home/wanghejie"
-raw_file_fa="/HDD1/wanghejie/datasets/Reads/$species/raw_longreads_"$folds"x.fasta"  # 原始long reads的fasta
-raw_file_fq="/HDD1/wanghejie/datasets/Reads/$species/raw_longreads_"$folds"x.fastq"  # 原始long reads的fastq
-experience_dir="$home/experience/"$species"_"$folds"/$tools/correct"  # 执行纠错及保存纠错后reads文件的目录
+standard_raw_fa_name="raw_longreads_"$folds"x.fasta"
+standard_raw_fq_name="raw_longreads_"$folds"x.fastq"
+raw_file_fa="/HDD1/wanghejie/datasets/Reads/$species/$standard_raw_fa_name"  # 原始long reads的fasta
+raw_file_fq="/HDD1/wanghejie/datasets/Reads/$species/$standard_raw_fq_name"  # 原始long reads的fastq
+if [ $tools == "raw" ]
+    then
+        experience_dir="$home/experience/"$species"_"$folds"/$tools/raw_data"
+else
+    experience_dir="$home/experience/"$species"_"$folds"/$tools/correct"  # 执行纠错及保存纠错后reads文件的目录
+fi
 standard_corrected_file_name="corrected_longreads.fasta"  # 纠错后reads文件的存储名
 
 #scripts path
@@ -79,6 +86,9 @@ flas_path="/home/wanghejie/biotools/FLAS"
 # 7. consent
 # 直接调用CONSENT-correct即可
 
+# 8. daccord
+# 直接调用fasta2DB, daligner, daccord即可
+
 
 #########################################
 # set genome size
@@ -94,12 +104,23 @@ fi
 #########################################
 # Running the tools 
 #########################################
-####1. mecat2####
-if [ $tools == "mecat2" ]
+####1. raw####
+if [ $tools == "raw" ]
+    then
+        echo -e "\e[1;32m #### Skip the error correction and go straight to assembly. #### \e[0m"
+        echo "#### Start: ln -s "$raw_file_fa" "$experience_dir/$standard_raw_fa_name" ####"
+        ln -s "$raw_file_fa" "$experience_dir/$standard_raw_fa_name"
+        echo -e "#### End: ln -s "$raw_file_fa" "$experience_dir/$standard_raw_fa_name" ####\n"
+        echo -e "\n"
+
+
+
+####2. mecat2####
+elif [ $tools == "mecat2" ]
     then
         config_file=""$experience_dir"/"$species"_config_file.txt"
 
-        # 设置配置文件
+        # (1) 设置配置文件
         echo -e "\e[1;32m #### "$tools" correct step 1/4: config #### \e[0m"
         echo "#### Start: mecat.pl config $config_file ####"
         echo "PROJECT="$species"_"$folds"" > $config_file
@@ -122,19 +143,19 @@ if [ $tools == "mecat2" ]
         echo -e "#### End: mecat.pl config $config_file ####\n"
         echo -e "\n"
 
-        # 执行correct步骤
+        # (2) 执行correct步骤
         echo -e "\e[1;32m #### "$tools" correct step 2/4: correct #### \e[0m"
         echo "#### Start: mecat.pl correct $config_file ####"
         perl $scripts_path/memory3.pl memoryrecord_1 "mecat.pl correct $config_file"
         echo -e "#### End: mecat.pl correct $config_file ####\n"
 
-        # 执行trim步骤
+        # (3) 执行trim步骤
         echo -e "\e[1;32m #### "$tools" correct step 3/4: trim #### \e[0m"
         echo "#### Start: mecat.pl trim $config_file ####"
         perl $scripts_path/memory3.pl memoryrecord_2 "mecat.pl trim $config_file"
         echo -e "#### End: mecat.pl trim $config_file ####\n"
 
-        # 标准化校正数据文件名
+        # (4) 标准化校正数据文件名
         # 所有工具的校正后长读，均在其实验目录的/correct目录下，名称为corrected_longreads.fasta
         echo -e "\e[1;32m #### "$tools" correct step 4/4: standard corrected reads file name #### \e[0m"
         unstandard_file_path=""$experience_dir"/"$species"_"$folds"/2-trim_bases"
@@ -149,13 +170,13 @@ if [ $tools == "mecat2" ]
 
 
 
-####2. falcon####
+####3. falcon####
 elif [ $tools == "falcon" ]
     then
         cfg_file=""$experience_dir"/fc_run_"$species""$folds".cfg"
         fofn_file=""$experience_dir"/input.fofn"
 
-        # 设置配置文件
+        # (1) 设置配置文件
         echo -e "\e[1;32m #### "$tools" correct step 1/3: config #### \e[0m"
         echo "#### Start: init "$cfg_file" ####"
         echo "#### Input" > $cfg_file
@@ -207,13 +228,13 @@ elif [ $tools == "falcon" ]
         echo $raw_file_fa > $fofn_file
         echo -e "#### End: init "$fofn_file" ####\n"
 
-        # 运行falcon纠错
+        # (2) 运行falcon纠错
         echo -e "\e[1;32m #### "$tools" correct step 2/3: correct #### \e[0m"
         echo "#### Start: fc_run "$cfg_file" ####"
         perl $scripts_path/memory3.pl memoryrecord "fc_run $cfg_file"
         echo -e "#### End: fc_run "$cfg_file" ####\n"
 
-        # 将所有consensus片段文件合成1个
+        # (3) 将所有consensus片段文件合成1个
         echo -e "\e[1;32m #### "$tools" correct step 3/3: standard corrected reads file name #### \e[0m"
         cns_root="$experience_dir"/0-rawreads/cns-runs
         cd $cns_root
@@ -229,16 +250,16 @@ elif [ $tools == "falcon" ]
 
 
 
-####3. lorma####
+####4. lorma####
 elif [ $tools == "lorma" ]
     then
-        # 运行lorma纠错
+        # (1) 运行lorma纠错
         echo -e "\e[1;32m #### "$tools" correct step 1/2: correct #### \e[0m"
         echo "#### Start: lorma.sh -threads 16 $raw_file_fa ####"
         perl $scripts_path/memory3.pl memoryrecord "lorma.sh -threads 16 $raw_file_fa"
         echo -e "#### End: lorma.sh -threads 16 $raw_file_fa ####\n"
 
-        # 标准化校正数据文件名
+        # (2) 标准化校正数据文件名
         # 所有工具的校正后长读，均在其实验目录的/correct目录下，名称为corrected_longreads.fasta
         echo -e "\e[1;32m #### "$tools" correct step 2/2: standard corrected reads file name #### \e[0m"
         echo "#### Start: mv final.fasta $standard_corrected_file_name ####"
@@ -247,16 +268,16 @@ elif [ $tools == "lorma" ]
 
 
 
-####4. canu####
+####5. canu####
 elif [ $tools == "canu" ]
     then
-        # 运行canu纠错
+        # (1) 运行canu纠错
         echo -e "\e[1;32m #### "$tools" correct step 1/2: correct #### \e[0m"
         echo "#### Start: canu -correct -p $species -d correct genomeSize=$genome_size useGrid=false -$company-raw $raw_file_fa ####"
         perl $scripts_path/memory3.pl memoryrecord "canu -correct -p $species -d correct genomeSize=$genome_size useGrid=false minInputCoverage=5 stopOnLowCoverage=5 -$company-raw $raw_file_fa"
         echo -e "#### End: canu -correct -p $species -d correct genomeSize=$genome_size useGrid=false -$company-raw $raw_file_fa ####\n"
 
-        # 标准化校正数据文件名
+        # (2) 标准化校正数据文件名
         # 所有工具的校正后长读，均在其实验目录的/correct目录下，名称为corrected_longreads.fasta
         echo -e "\e[1;32m #### "$tools" correct step 2/2: standard corrected reads file name #### \e[0m"
         echo "#### Start: gunzip $experience_dir/correct/$species.correctedReads.fasta.gz ####"
@@ -268,12 +289,12 @@ elif [ $tools == "canu" ]
 
 
 
-####5. pbcr####
+####6. pbcr####
 elif [ $tools == "pbcr" ]
     then
         config_file=""$experience_dir"/"$company".spec"
         
-        # 设置配置文件
+        # (1) 设置配置文件
         echo -e "\e[1;32m #### "$tools" correct step 1/3: config #### \e[0m"
         echo "#### Start: init "$config_file" ####"
         echo "# limit to 32GB. By default the pipeline will auto-detect memory and try to use maximum. This allow limiting it" > $config_file
@@ -285,13 +306,13 @@ elif [ $tools == "pbcr" ]
         echo "ovlThreads = 16" >> $config_file
         echo -e "#### End: init "$config_file" ####\n"
 
-        # 执行PBcR纠错
+        # (2) 执行PBcR纠错
         echo -e "\e[1;32m #### "$tools" correct step 2/3: correct #### \e[0m"
         echo "#### Start: PBcR -length 500 -partitions 200 -genomeSize $genome_size -libraryname $species$folds -s $config_file -fastq $raw_file_fq > run.log 2>&1 ####"
         perl $scripts_path/memory3.pl memoryrecord "PBcR -length 500 -partitions 200 -genomeSize $genome_size -libraryname $species$folds -s $config_file -fastq $raw_file_fq > run.log 2>&1"
         echo -e "#### End: PBcR -length 500 -partitions 200 -genomeSize $genome_size -libraryname $species$folds -s $config_file -fastq $raw_file_fq > run.log 2>&1 ####\n"
 
-        # 标准化校正数据文件名
+        # (3) 标准化校正数据文件名
         # 所有工具的校正后长读，均在其实验目录的/correct目录下，名称为corrected_longreads.fasta
         echo -e "\e[1;32m #### "$tools" correct step 3/3: standard corrected reads file name #### \e[0m"
         echo "#### Start: mv $species$folds.fasta $standard_corrected_file_name ####"
@@ -300,16 +321,16 @@ elif [ $tools == "pbcr" ]
 
 
 
-####6. flas####
+####7. flas####
 elif [ $tools == "flas" ]
     then
-        # 执行flas纠错
+        # (1) 执行flas纠错
         echo -e "\e[1;32m #### "$tools" correct step 1/2: correct #### \e[0m"
         echo "#### Start: python $flas_path/runFLAS.py $raw_file_fq -c $folds ####"
         perl $scripts_path/memory3.pl memoryrecord "python $flas_path/runFLAS.py $raw_file_fa -c $folds"
         echo -e "#### End: python $flas_path/runFLAS.py $raw_file_fq -c $folds ####\n"
 
-        # 标准化校正数据文件名
+        # (2) 标准化校正数据文件名
         # 所有工具的校正后长读，均在其实验目录的/correct目录下，名称为corrected_longreads.fasta
         echo -e "\e[1;32m #### "$tools" correct step 2/2: standard corrected reads file name #### \e[0m"
         echo "#### Start: mv $experience_dir/output/split_reads.fasta $experience_dir/$standard_corrected_file_name ####"
@@ -318,22 +339,61 @@ elif [ $tools == "flas" ]
 
 
 
-####7. consent####
+####8. consent####
 elif [ $tools == "consent" ]
     then
-        if [ $company == "Pacbio" ]
+        if [ $company == "pacbio" ]
             then
                 type="PB"
             else
                 type="ONT"
         fi
 
-        # 执行consent纠错
+        # (1) 执行consent纠错
         # CONSENT可以设置输出文件名，因此可省略标准化文件名步骤
         echo -e "\e[1;32m #### "$tools" correct step 1/1: correct #### \e[0m"
         echo "#### Start: CONSENT-correct --in $raw_file_fa --out $standard_corrected_file_name --type $type ####"
         perl $scripts_path/memory3.pl memoryrecord "CONSENT-correct --in $raw_file_fa --out $standard_corrected_file_name --type $type"
         echo -e "#### End: CONSENT-correct --in $raw_file_fa --out $standard_corrected_file_name --type $type ####\n"
+
+
+
+####9. daccord####
+elif [ $tools == "daccord" ]
+    then
+        db_prefix="$species"_"$folds"
+        db_name="$experience_dir"/"$db_prefix".db
+
+        # (1) make raw reads file to Dazzler Database
+        echo -e "\e[1;32m #### "$tools" correct step 1/5: make dazzler database #### \e[0m"
+        echo "#### Start: fasta2DB $db_name $raw_file_fa ####"
+        perl $scripts_path/memory3.pl memoryrecord1 "fasta2DB $db_name $raw_file_fa"
+        echo -e "#### End: fasta2DB $db_name $raw_file_fa ####\n"
+
+        # (2) 过滤DB中<14bp的reads，否则运行daligner时会报错
+        echo -e "\e[1;32m #### "$tools" correct step 2/5: filter reads which < 14bp #### \e[0m"
+        echo "#### Start: DBsplit -x14 $db_name ####"
+        perl $scripts_path/memory3.pl memoryrecord2 "DBsplit -x14 $db_name"
+        echo -e "#### End: DBsplit -x14 $db_name ####\n"
+
+        # (3) use daligner for self-comparison
+        echo -e "\e[1;32m #### "$tools" correct step 3/5: use daligner for self-comparison #### \e[0m"
+        echo "#### Start: daligner -T16 "$db_name" "$db_name" ####"
+        perl $scripts_path/memory3.pl memoryrecord3 "daligner -T16 "$db_name" "$db_name""
+        echo -e "#### End: daligner -T16 "$db_name" "$db_name" ####\n"
+
+        # (4) 执行daccord纠错
+        # 将结果重定向至文件
+        echo -e "\e[1;32m #### "$tools" correct step 4/5: correct #### \e[0m"
+        echo "#### Start: daccord "$experience_dir"/"$db_prefix"."$db_prefix".las $db_name > corrected_longreads_unreformed.fasta ####"
+        perl $scripts_path/memory3.pl memoryrecord4 "daccord "$experience_dir"/"$db_prefix"."$db_prefix".las $db_name > corrected_longreads_unreformed.fasta"
+        echo -e "#### End: daccord "$experience_dir"/"$db_prefix"."$db_prefix".las $db_name > corrected_longreads_unreformed.fasta ####\n"
+
+        # (5) 运行自写py脚本，将daccord输出转变为标准fasta格式
+        echo -e "\e[1;32m #### "$tools" correct step 5/5: standard corrected reads file #### \e[0m"
+        echo "#### Start: python $scripts_path/py_reform/daccord_reform.py corrected_longreads_unreformed.fasta $standard_corrected_file_name ####"
+        python $scripts_path/py_reform/daccord_reform.py corrected_longreads_unreformed.fasta $standard_corrected_file_name
+        echo -e "#### End: python $scripts_path/py_reform/daccord_reform.py corrected_longreads_unreformed.fasta $standard_corrected_file_name ####\n"
 
 
 

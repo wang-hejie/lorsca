@@ -48,3 +48,46 @@ def fasta_to_fastq(input_file, output_file):
                         f_out.write('+\n')
                         f_out.write('I'*len(line) + '\n')
                         line_num = 0
+
+
+def ctg_lay_to_fasta(input_file, output_file):
+    """
+    将wtdbg2软件中第一个步骤assemble生成的.ctg.lay文件，转换成标准fasta格式
+
+    :param input_file: 输入.ctg.lay文件
+    :param output_file: 输出fasta文件
+    :return: 无
+    """
+    with open(input_file, 'r') as f_in:
+        with open(output_file, 'a') as f_out:
+            f_in.readline()
+            for line in f_in:
+                temp_list = line.rstrip().split('\t')  # 将.ctg.lay文件的一行按成分切分
+                if (temp_list[0] != 'S') or (len(temp_list) < 6):
+                    continue
+                f_out.write('>' + temp_list[1] + '/' + '_'.join(temp_list[3:5]) + '\n')
+                f_out.write(temp_list[5] + '\n')
+
+
+def daccord_output_to_fasta(input_file, output_file):
+    """
+    将daccord生成的输出文件，转换成标准fasta格式
+
+    :param input_file: daccord生成的输出文件
+    :param output_file: 标准fasta格式
+    :return: 无
+    """
+    begin = False
+    with open(input_file, 'r') as f_in:
+        with open(output_file, 'a') as f_out:
+            for line in f_in:
+                if line[0] != '>':
+                    if begin is False:
+                        continue
+                    elif (line[0] == '[') and (line[2] == ']'):
+                        continue
+                    else:
+                        f_out.write(line)
+                else:
+                    begin = True
+                    f_out.write(line)

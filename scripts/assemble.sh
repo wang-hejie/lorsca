@@ -3,7 +3,7 @@
 #########################################
 #  $1: species - ecoli, scere
 #  $2: folds - 10, 30, 50, 75, 100
-#  $3: tools - mecat2, falcon, lorma, canu, pbcr
+#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord
 #  $4: company - pacbio, ont
 #  $5: assembler - miniasm
 #  (all varaibles are converted to the lower cases)
@@ -22,6 +22,7 @@ home="/home/wanghejie"
 experience_dir="$home/experience/"$species"_"$folds"/$tools/assemble"
 standard_assemble_file_name="contig.fasta"
 corrected_reads_file="$home/experience/"$species"_"$folds"/$tools/correct/corrected_longreads.fasta"  # 纠错后reads文件
+raw_file_fa="$home/experience/"$species"_"$folds"/$tools/raw_data/raw_longreads_"$folds"x.fasta"  # 原始long reads的fasta
 
 #scripts path
 scripts_path="$(cd `dirname $0`; pwd)"
@@ -57,24 +58,32 @@ fi
 #### 1. miniasm ####
 if [ $assembler == "miniasm" ]
     then
-        # minimap2
+        # set file to be assembled
         echo -e "\e[1;32m #### "$tools" assemble step 1/3: minimap2 #### \e[0m"
+        if [ $tools == "raw" ]
+            then
+                assemble_file=$raw_file_fa
+        else
+            assemble_file=$corrected_reads_file
+        fi
+
+        # minimap2
         if [ $company == "pacbio" ]
             then
-                echo "#### Start: minimap2 -x ava-pb -t8 $corrected_reads_file $corrected_reads_file | gzip -1 > reads.paf.gz ####"
-                perl $scripts_path/memory3.pl memoryrecord_1 "minimap2 -x ava-pb -t8 $corrected_reads_file $corrected_reads_file | gzip -1 > reads.paf.gz"
-                echo -e "#### End: minimap2 -x ava-pb -t8 $corrected_reads_file $corrected_reads_file | gzip -1 > reads.paf.gz ####\n"
+                echo "#### Start: minimap2 -x ava-pb -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####"
+                perl $scripts_path/memory3.pl memoryrecord_1 "minimap2 -x ava-pb -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz"
+                echo -e "#### End: minimap2 -x ava-pb -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####\n"
         else
-            echo "#### Start: minimap2 -x ava-ont -t8 $corrected_reads_file $corrected_reads_file | gzip -1 > reads.paf.gz ####"
-            perl $scripts_path/memory3.pl memoryrecord_1 "minimap2 -x ava-ont -t8 $corrected_reads_file $corrected_reads_file | gzip -1 > reads.paf.gz"
-            echo -e "#### End: minimap2 -x ava-ont -t8 $corrected_reads_file $corrected_reads_file | gzip -1 > reads.paf.gz ####\n"
+            echo "#### Start: minimap2 -x ava-ont -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####"
+            perl $scripts_path/memory3.pl memoryrecord_1 "minimap2 -x ava-ont -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz"
+            echo -e "#### End: minimap2 -x ava-ont -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####\n"
         fi
 
         # miniasm
         echo -e "\e[1;32m #### "$tools" assemble step 2/3: miniasm #### \e[0m"
-        echo "#### Start: miniasm -f $corrected_reads_file reads.paf.gz > reads.gfa ####"
-        perl $scripts_path/memory3.pl memoryrecord_2 "miniasm -f $corrected_reads_file reads.paf.gz > reads.gfa"
-        echo -e "#### End: miniasm -f $corrected_reads_file reads.paf.gz > reads.gfa ####\n"
+        echo "#### Start: miniasm -f $assemble_file reads.paf.gz > reads.gfa ####"
+        perl $scripts_path/memory3.pl memoryrecord_2 "miniasm -f $assemble_file reads.paf.gz > reads.gfa"
+        echo -e "#### End: miniasm -f $assemble_file reads.paf.gz > reads.gfa ####\n"
 
         # 从重叠图文件中提取contig
         echo -e "\e[1;32m #### "$tools" assemble step 3/3: extract contig #### \e[0m"

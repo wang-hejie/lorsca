@@ -7,7 +7,6 @@ workflow: correct->assemble->count
 
 from modules import origin_reads_analyse as or_analyse
 from modules import blasr_statistics
-from modules import reformat
 import sys
 
 
@@ -16,11 +15,17 @@ folds = sys.argv[2]
 tools = sys.argv[3]
 
 home = r'/home/wanghejie'
+dataset_dir = r'/HDD1/wanghejie/datasets'
 experience_dir = f'{home}/experience/{species}_{folds}/{tools}'
 corrected_reads_file = f'{experience_dir}/correct/corrected_longreads.fasta'  # 纠错后reads的fa文件
+raw_file_fa = f'{experience_dir}/raw_data/raw_longreads_{folds}x.fasta'
+
+if tools == 'raw':
+    count_file = raw_file_fa
+else:
+    count_file = corrected_reads_file
 # contig_file = f'{experience_dir}/assemble/contig.fasta'  # 使用纠错后fa文件组装好的contig
 
-dataset_dir = r'/HDD1/wanghejie/datasets'
 # raw_reads_file_fa = f'{dataset_dir}/Reads/{species}/raw_longreads_{folds}.fasta'  # 原始long reads的fa文件
 if species == 'ecoli':  # 参考基因组
     ref_file_fna = f'{dataset_dir}/Reference/{species}/GCF_000005845.2_ASM584v2_genomic.fna'
@@ -35,7 +40,7 @@ blasr_count_file = f'{experience_dir}/blasr_result/blasr_count.txt'  # 对blasr�
 # origin_reads_count = or_analyse.reads_stat(raw_reads_file_fa, ref_file_fna)  # 输出统计信息
 # print(origin_reads_count)
 
-corrected_reads_count = or_analyse.reads_stat(corrected_reads_file, ref_file_fna)  # 计算DepA
+corrected_reads_count = or_analyse.reads_stat(count_file, ref_file_fna)  # 计算DepA
 print(corrected_reads_count)
 
 blasr_statistics.count_indel_mismatch_aarl(blasr_output_file, blasr_count_file)  # 计算Ins, Del, Sub
