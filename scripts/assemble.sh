@@ -3,7 +3,7 @@
 #########################################
 #  $1: species - ecoli, scere
 #  $2: folds - 10, 30, 50, 75, 100
-#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent
+#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord
 #  $4: company - pacbio, ont
 #  $5: assembler - miniasm
 #  (all varaibles are converted to the lower cases)

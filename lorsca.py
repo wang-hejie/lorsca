@@ -1,3 +1,6 @@
+#!/usr/bin/python3
+# -*- encoding: utf-8 -*-
+
 """
 将整个工作流包装成软件self-correction
 使用-h查看使用说明
@@ -12,7 +15,7 @@ parser = argparse.ArgumentParser(description='Automate self-correcting workflow 
                                              'workflow: correct->assemble->count')
 parser.add_argument('-s', '--species', type=str, help='ecoli, scere')
 parser.add_argument('-f', '--folds', type=str, help='10, 30, 50, 75, 100')
-parser.add_argument('-t', '--tools', type=str, default='raw', help='mecat2, falcon, lorma, canu, pbcr, flas, consent')
+parser.add_argument('-t', '--tools', type=str, default='raw', help='mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord')
 parser.add_argument('-c', '--company', type=str, default='pacbio', help='pacbio, ont')
 parser.add_argument('-a', '--assembler', type=str, default='miniasm', help='miniasm')
 args = parser.parse_args()
