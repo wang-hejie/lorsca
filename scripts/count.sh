@@ -56,7 +56,7 @@ for i in ${dir[@]}
 
 
 #########################################
-# collecing performance of the tools 
+# calculate performance of the tools 
 #########################################
 # set file to be counted
 if [ $tools == "raw" ]

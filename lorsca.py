@@ -37,3 +37,4 @@ software_path = os.path.abspath(os.path.dirname(script_path) + os.path.sep + "."
 subprocess.call(f'bash {software_path}/scripts/correct.sh {species} {folds} {tools} {company}', shell=True)
 subprocess.call(f'bash {software_path}/scripts/assemble.sh {species} {folds} {tools} {company} {assembler}', shell=True)
 subprocess.call(f'bash {software_path}/scripts/count.sh {species} {folds} {tools}', shell=True)
+subprocess.call(f'bash {software_path}/scripts/tabulate.sh {species} {folds} {tools}', shell=True)
