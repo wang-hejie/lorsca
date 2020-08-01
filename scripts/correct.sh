@@ -51,7 +51,7 @@ cd $experience_dir
 # Set tool installed path
 #########################################
 # 1. mecat2
-# 直接调用mecat.pl即可
+mecat2_path="/home/wanghejie/biotools/MECAT2/Linux-amd64/bin"
 
 # 2. falcon
 if [ $tools == "falcon" ]
@@ -146,13 +146,13 @@ elif [ $tools == "mecat2" ]
         # (2) 执行correct步骤
         echo -e "\e[1;32m #### "$tools" correct step 2/4: correct #### \e[0m"
         echo "#### Start: mecat.pl correct $config_file ####"
-        perl $scripts_path/memory3.pl memoryrecord_1 "mecat.pl correct $config_file"
+        perl $scripts_path/memory3.pl memoryrecord_1 "$mecat2_path/mecat.pl correct $config_file"
         echo -e "#### End: mecat.pl correct $config_file ####\n"
 
         # (3) 执行trim步骤
         echo -e "\e[1;32m #### "$tools" correct step 3/4: trim #### \e[0m"
         echo "#### Start: mecat.pl trim $config_file ####"
-        perl $scripts_path/memory3.pl memoryrecord_2 "mecat.pl trim $config_file"
+        perl $scripts_path/memory3.pl memoryrecord_2 "$mecat2_path/mecat.pl trim $config_file"
         echo -e "#### End: mecat.pl trim $config_file ####\n"
 
         # (4) 标准化校正数据文件名
@@ -326,9 +326,9 @@ elif [ $tools == "flas" ]
     then
         # (1) 执行flas纠错
         echo -e "\e[1;32m #### "$tools" correct step 1/2: correct #### \e[0m"
-        echo "#### Start: python $flas_path/runFLAS.py $raw_file_fq -c $folds ####"
+        echo "#### Start: python $flas_path/runFLAS.py $raw_file_fa -c $folds ####"
         perl $scripts_path/memory3.pl memoryrecord "python $flas_path/runFLAS.py $raw_file_fa -c $folds"
-        echo -e "#### End: python $flas_path/runFLAS.py $raw_file_fq -c $folds ####\n"
+        echo -e "#### End: python $flas_path/runFLAS.py $raw_file_fa -c $folds ####\n"
 
         # (2) 标准化校正数据文件名
         # 所有工具的校正后长读，均在其实验目录的/correct目录下，名称为corrected_longreads.fasta
