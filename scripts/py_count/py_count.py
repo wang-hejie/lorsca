@@ -8,14 +8,15 @@ workflow: correct->assemble->count
 from modules import origin_reads_analyse as or_analyse
 from modules import blasr_statistics
 import sys
+import os
 
 
 species = sys.argv[1]
 folds = sys.argv[2]
 tools = sys.argv[3]
 
-home = r'/home/wanghejie'
-dataset_dir = r'/HDD1/wanghejie/datasets'
+home = os.getenv('HOME')
+dataset_dir = f'{home}/datasets'
 experience_dir = f'{home}/experience/{species}_{folds}/{tools}'
 corrected_reads_file = f'{experience_dir}/correct/corrected_longreads.fasta'  # 纠错后reads的fa文件
 raw_file_fa = f'{experience_dir}/raw_data/raw_longreads_{folds}x.fasta'

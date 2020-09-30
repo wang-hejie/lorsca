@@ -23,14 +23,9 @@ raw_file_fa="$experience_dir/raw_data/raw_longreads_"$folds"x.fasta"  # 原始lo
 corrected_reads_file="$experience_dir/correct/corrected_longreads.fasta"  # 纠错后reads文件
 contig_file="$experience_dir/assemble/contig.fasta"  # 组装产生的contig文件
 
-if [ $species == "ecoli" ]
-    then
-        ref_file_fna="/HDD1/wanghejie/datasets/Reference/$species/GCF_000005845.2_ASM584v2_genomic.fna"
-        ref_file_gff="/HDD1/wanghejie/datasets/Reference/$species/GCF_000005845.2_ASM584v2_genomic.gff"
-else
-    ref_file_fna="/HDD1/wanghejie/datasets/Reference/$species/GCF_000146045.2_R64_genomic.fna"
-    ref_file_gff="/HDD1/wanghejie/datasets/Reference/$species/GCF_000146045.2_R64_genomic.gff"
-fi
+# 参考基因组
+ref_file_fna="$home/datasets/Reference/$species/*.fna"
+ref_file_gff="$home/datasets/Reference/$species/*.gff"
 
 cd $experience_dir
 

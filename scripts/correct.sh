@@ -20,8 +20,8 @@ echo "------------------"$tools"-------------------"
 home="/home/wanghejie"
 standard_raw_fa_name="raw_longreads_"$folds"x.fasta"
 standard_raw_fq_name="raw_longreads_"$folds"x.fastq"
-raw_file_fa="/HDD1/wanghejie/datasets/Reads/$species/$standard_raw_fa_name"  # 原始long reads的fasta
-raw_file_fq="/HDD1/wanghejie/datasets/Reads/$species/$standard_raw_fq_name"  # 原始long reads的fastq
+raw_file_fa="$home/datasets/Reads/$species/$standard_raw_fa_name"  # 原始long reads的fasta
+raw_file_fq="$home/datasets/Reads/$species/$standard_raw_fq_name"  # 原始long reads的fastq
 if [ $tools == "raw" ]
     then
         experience_dir="$home/experience/"$species"_"$folds"/$tools/raw_data"
