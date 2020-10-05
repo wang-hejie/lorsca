@@ -314,11 +314,11 @@ elif [ $tools == "pbcr" ]
         # (1) 设置配置文件
         echo -e "\e[1;32m #### "$tools" correct step 1/3: config #### \e[0m"
         echo "#### Start: init "$config_file" ####"
-        echo "# limit to 32GB. By default the pipeline will auto-detect memory and try to use maximum. This allow limiting it" > $config_file
+        # echo "# limit to 32GB. By default the pipeline will auto-detect memory and try to use maximum. This allow limiting it" > $config_file
         echo "merSize = 14" >> $config_file
         echo "assemble = 0" >> $config_file
-        echo "ovlMemory = 250" >> $config_file
-        echo "ovlStoreMemory = 32000" >> $config_file
+        # echo "ovlMemory = 250" >> $config_file
+        # echo "ovlStoreMemory = 32000" >> $config_file
         echo "blasr = -bestn 10 -nCandidates 10" >> $config_file
         echo "ovlThreads = $threads_num" >> $config_file
         echo -e "#### End: init "$config_file" ####\n"
@@ -395,9 +395,9 @@ elif [ $tools == "daccord" ]
 
         # (3) use daligner for self-comparison
         echo -e "\e[1;32m #### "$tools" correct step 3/5: use daligner for self-comparison #### \e[0m"
-        echo "#### Start: daligner -T$threads_num "$db_name" "$db_name" ####"
-        perl $scripts_path/memory3.pl memoryrecord3 "daligner -T$threads_num "$db_name" "$db_name""
-        echo -e "#### End: daligner -T$threads_num "$db_name" "$db_name" ####\n"
+        echo "#### Start: daligner -T63 "$db_name" "$db_name" ####"
+        perl $scripts_path/memory3.pl memoryrecord3 "daligner -T63 "$db_name" "$db_name""  # 此处若-T大于等于64，就会报错core dumped
+        echo -e "#### End: daligner -T63 "$db_name" "$db_name" ####\n"
 
         # (4) 执行daccord纠错
         # 将结果重定向至文件
