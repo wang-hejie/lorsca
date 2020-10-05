@@ -74,9 +74,9 @@ if [ $tools != "raw" ]
 fi
 
 # about blasr_count.txt
-ins=$(echo "$(grep ins_rate $blasr_stat_file | awk '{printf $2}') * 100" | bc | awk '{printf ("%.2f", $1)}')
-del=$(echo "$(grep del_rate $blasr_stat_file | awk '{printf $2}') * 100" | bc | awk '{printf ("%.2f", $1)}')
-sub=$(echo "$(grep mismatch_rate $blasr_stat_file | awk '{printf $2}') * 100" | bc | awk '{printf ("%.2f", $1)}')
+ins_rate=$(echo "$(grep ins_rate $blasr_stat_file | awk '{printf $2}') * 100" | bc | awk '{printf ("%.2f", $1)}')
+del_rate=$(echo "$(grep del_rate $blasr_stat_file | awk '{printf $2}') * 100" | bc | awk '{printf ("%.2f", $1)}')
+sub_rate=$(echo "$(grep mismatch_rate $blasr_stat_file | awk '{printf $2}') * 100" | bc | awk '{printf ("%.2f", $1)}')
 
 
 # about dnadiff_output.txt
@@ -112,7 +112,7 @@ accuracy=$(echo "scale=5;(1-$corrected_error/$aligned_reads_length)*100" | bc | 
 
 # 对seq相关统计结果制表
 echo -e "Sequence,Mean(x),DepA(x),Time(min),Mem(Gb),Sensitivity,Accuracy,Ins(%),Del(%),Sub(%),AARL(bp),Iden(%),Cov(%)" > $table_seq
-echo -e "$sequence,$mean_bp,$depa,$correct_time,$correct_mem,$sensitivity,$accuracy,$ins,$del,$sub,$aarl,$iden,$cov" >> $table_seq
+echo -e "$sequence,$mean_bp,$depa,$correct_time,$correct_mem,$sensitivity,$accuracy,$ins_rate,$del_rate,$sub_rate,$aarl,$iden,$cov" >> $table_seq
 
 
 
