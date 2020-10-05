@@ -16,6 +16,7 @@ tools="$(echo $3 | tr '[:upper:]' '[:lower:]')"
 #########################################
 home="/home/wanghejie"
 experience_dir="$home/experience/"$species"_"$folds"/$tools"  # 执行统计的目录
+raw_dir="$home/experience/"$species"_"$folds"/raw"  # raw data统计目录
 
 if [ $tools == "raw" ]
     then
@@ -28,6 +29,7 @@ assemble_dir="$experience_dir/assemble"       # 执行组装的目录
 dnadiff_dir="$experience_dir/dnadiff_result"  # 执行dnadiff的目录
 blasr_dir="$experience_dir/blasr_result"      # 执行blasr的目录
 quast_dir="$experience_dir/quast_result"      # 执行quast的目录
+raw_blasr_dir="$raw_dir/blasr_result"         # raw data的blasr目录
 
 if [ $tools == "raw" ]
     then
@@ -39,6 +41,8 @@ fi
 dnadiff_stat_file="$dnadiff_dir/dnadiff_output.txt"
 blasr_stat_file="$blasr_dir/blasr_count.txt"
 quast_stat_file="$quast_dir/quast_output.txt"
+raw_blasr_stat_file="$raw_blasr_dir/blasr_count.txt"
+raw_reads_stat_file="$raw_dir/raw_data/*.log"
 
 table_seq="$experience_dir/table_seq.csv"
 table_contig="$experience_dir/table_contig.csv"
@@ -80,9 +84,35 @@ aarl=$(grep AvgLength $dnadiff_stat_file | head -1 | awk '{printf ("%.0f", $3)}'
 iden=$(grep AvgIdentity $dnadiff_stat_file | head -1 | awk '{printf $3}')
 cov=$(grep AlignedBases $dnadiff_stat_file | head -1 | awk '{printf $2}' | cut -d '(' -f2|cut -d '%' -f1)
 
+
+# sensitivity, accuracy
+mismatch_num=$(grep mismatch_num $blasr_stat_file | awk '{printf $2}')
+ins_num=$(grep ins_num $blasr_stat_file | awk '{printf $2}')
+del_num=$(grep del_num $blasr_stat_file | awk '{printf $2}')
+corrected_error=$(($mismatch_num+$ins_num+$del_num))  # corrected data错误数
+aligned_reads_length=$(grep aligned_base_num $blasr_stat_file | awk '{printf $2}')  # corrected data长度
+if [ $tools == "raw" ]
+    then
+        echo -e "\e[1;35m raw data has no sensitivity. \e[0m"
+else
+    # 若没对raw进行过统计，先统计raw
+    if [ ! -d $raw_dir ]
+        then
+            python3 "$scripts_path/../lorsca.py" -s $species -f $folds
+    fi
+    raw_mismatch_num=$(grep mismatch_num $raw_blasr_stat_file | awk '{printf $2}')
+    raw_ins_num=$(grep ins_num $raw_blasr_stat_file | awk '{printf $2}')
+    raw_del_num=$(grep del_num $raw_blasr_stat_file | awk '{printf $2}')
+    raw_error=$(($raw_mismatch_num+$raw_ins_num+$raw_del_num))  # raw data错误数
+    raw_aligned_reads_length=$(grep aligned_base_num $raw_blasr_stat_file | awk '{printf $2}')  # raw data长度
+    sensitivity="0"$(echo "scale=2;($raw_error-$corrected_error)/$raw_error*$aligned_reads_length/$raw_aligned_reads_length" | bc)  # 敏感度
+fi
+accuracy=$(echo "scale=5;(1-$corrected_error/$aligned_reads_length)*100" | bc | awk '{printf ("%.2f", $1)}')
+
+
 # 对seq相关统计结果制表
-echo -e "Sequence,Mean(x),DepA(x),Time(min),Mem(Gb),Ins(%),Del(%),Sub(%),AARL(bp),Iden(%),Cov(%)" > $table_seq
-echo -e "$sequence,$mean_bp,$depa,$correct_time,$correct_mem,$ins,$del,$sub,$aarl,$iden,$cov" >> $table_seq
+echo -e "Sequence,Mean(x),DepA(x),Time(min),Mem(Gb),Sensitivity,Accuracy,Ins(%),Del(%),Sub(%),AARL(bp),Iden(%),Cov(%)" > $table_seq
+echo -e "$sequence,$mean_bp,$depa,$correct_time,$correct_mem,$sensitivity,$accuracy,$ins,$del,$sub,$aarl,$iden,$cov" >> $table_seq
 
 
 
