@@ -3,7 +3,7 @@
 #########################################
 #  $1: species - ecoli, scere
 #  $2: folds - 10, 30, 50, 75, 100
-#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord
+#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord, sprai
 #  (all varaibles are converted to the lower cases)
 #########################################
 species="$(echo $1 | tr '[:upper:]' '[:lower:]')"
@@ -23,19 +23,24 @@ raw_file_fa="$experience_dir/raw_data/raw_longreads_"$folds"x.fasta"  # 原始lo
 corrected_reads_file="$experience_dir/correct/corrected_longreads.fasta"  # 纠错后reads文件
 contig_file="$experience_dir/assemble/contig.fasta"  # 组装产生的contig文件
 
-if [ $species == "ecoli" ]
-    then
-        ref_file_fna="/HDD1/wanghejie/datasets/Reference/$species/GCF_000005845.2_ASM584v2_genomic.fna"
-        ref_file_gff="/HDD1/wanghejie/datasets/Reference/$species/GCF_000005845.2_ASM584v2_genomic.gff"
-else
-    ref_file_fna="/HDD1/wanghejie/datasets/Reference/$species/GCF_000146045.2_R64_genomic.fna"
-    ref_file_gff="/HDD1/wanghejie/datasets/Reference/$species/GCF_000146045.2_R64_genomic.gff"
-fi
+# 参考基因组
+ref_file_fna="$home/datasets/Reference/$species/*.fna"
+ref_file_gff="$home/datasets/Reference/$species/*.gff"
 
 cd $experience_dir
 
 #scripts path
 scripts_path="$(cd `dirname $0`; pwd)"
+
+
+#########################################
+# set threads num
+#########################################
+cpu=$(cat /proc/cpuinfo |grep "physical id"|sort|uniq|wc -l)
+cpu_cores=$(cat /proc/cpuinfo |grep "cpu cores"|uniq|wc -l)
+core_processor=$(cat /proc/cpuinfo |grep "processor"|wc -l)
+threads_num=$(($cpu*$cpu_cores*$core_processor))
+echo "threads_num = $threads_num"
 
 
 #########################################
@@ -86,9 +91,9 @@ conda activate blasr
 cd $blasr_dir
 
 echo -e "\e[1;32m #### "$tools" count step 2/3: blasr #### \e[0m"
-echo "#### Start: blasr $count_file $ref_file_fna --nproc 16 -m 5 ####"
-blasr $count_file $ref_file_fna --nproc 16 -m 5 > blasr_output.txt 2>&1
-echo -e "#### End: blasr $count_file $ref_file_fna --nproc 16 -m 5 ####\n"
+echo "#### Start: blasr $count_file $ref_file_fna --nproc $threads_num -m 5 ####"
+blasr $count_file $ref_file_fna --nproc $threads_num -m 5 > blasr_output.txt 2>&1
+echo -e "#### End: blasr $count_file $ref_file_fna --nproc $threads_num -m 5 ####\n"
 echo "#### Start: python3 $scripts_path/py_count/py_count.py $species $folds $tools ####"
 python3 $scripts_path/py_count/py_count.py $species $folds $tools
 echo -e "#### End: python3 $scripts_path/py_count/py_count.py $species $folds $tools ####\n"
@@ -99,9 +104,13 @@ echo -e "#### End: python3 $scripts_path/py_count/py_count.py $species $folds $t
 cd $quast_dir
 
 echo -e "\e[1;32m #### "$tools" count step 3/3: quast #### \e[0m"
-echo "#### Start: quast.py -o . -r $ref_file_fna -g $ref_file_gff -m 500 -t 16 $contig_file ####"
-quast.py -o . -r $ref_file_fna -g $ref_file_gff -m 500 -t 16 $contig_file
-echo -e "#### End: quast.py -o . -r $ref_file_fna -g $ref_file_gff -m 500 -t 16 $contig_file ####\n"
+echo "#### Start: quast.py -o . -r $ref_file_fna -g $ref_file_gff -m 500 -t $threads_num $contig_file ####"
+quast.py -o . -r $ref_file_fna -g $ref_file_gff -m 500 -t $threads_num $contig_file
+echo -e "#### End: quast.py -o . -r $ref_file_fna -g $ref_file_gff -m 500 -t $threads_num $contig_file ####\n"
 echo "#### Start: mv report.txt quast_output.txt ####"
 mv report.txt quast_output.txt
 echo -e "#### End: mv report.txt quast_output.txt ####\n"
+
+
+#### 自写评价指标 ####
+# sensitivity, accuracy

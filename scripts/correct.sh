@@ -3,7 +3,7 @@
 #########################################
 #  $1: species - ecoli, scere
 #  $2: folds - 10, 30, 50, 75, 100
-#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord
+#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord, sprai
 #  $4: company - pacbio, ont
 #  (all varaibles are converted to the lower cases)
 #########################################
@@ -20,8 +20,8 @@ echo "------------------"$tools"-------------------"
 home="/home/wanghejie"
 standard_raw_fa_name="raw_longreads_"$folds"x.fasta"
 standard_raw_fq_name="raw_longreads_"$folds"x.fastq"
-raw_file_fa="/HDD1/wanghejie/datasets/Reads/$species/$standard_raw_fa_name"  # 原始long reads的fasta
-raw_file_fq="/HDD1/wanghejie/datasets/Reads/$species/$standard_raw_fq_name"  # 原始long reads的fastq
+raw_file_fa="$home/datasets/Reads/$species/$standard_raw_fa_name"  # 原始long reads的fasta
+raw_file_fq="$home/datasets/Reads/$species/$standard_raw_fq_name"  # 原始long reads的fastq
 if [ $tools == "raw" ]
     then
         experience_dir="$home/experience/"$species"_"$folds"/$tools/raw_data"
@@ -32,6 +32,26 @@ standard_corrected_file_name="corrected_longreads.fasta"  # 纠错后reads文件
 
 #scripts path
 scripts_path="$(cd `dirname $0`; pwd)"
+
+
+#########################################
+# set threads num
+#########################################
+cpu=$(cat /proc/cpuinfo |grep "physical id"|sort|uniq|wc -l)
+cpu_cores=$(cat /proc/cpuinfo |grep "cpu cores"|uniq|wc -l)
+core_processor=$(cat /proc/cpuinfo |grep "processor"|wc -l)
+threads_num=$(($cpu*$cpu_cores*$core_processor))
+echo "threads_num = $threads_num"
+
+#########################################
+# set genome size
+#########################################
+if [ $species == "ecoli" ]
+    then
+        genome_size=4800000
+    else
+        genome_size=12000000
+fi
 
 
 #########################################
@@ -89,15 +109,12 @@ flas_path="/home/wanghejie/biotools/FLAS"
 # 8. daccord
 # 直接调用fasta2DB, daligner, daccord即可
 
-
-#########################################
-# set genome size
-#########################################
-if [ $species == "ecoli" ]
+# 9. sprai
+if [ $tools == "sprai" ]
     then
-        genome_size=4800000
-    else
-        genome_size=12000000
+        source activate
+        source deactivate
+        conda activate sprai
 fi
 
 
@@ -126,7 +143,7 @@ elif [ $tools == "mecat2" ]
         echo "PROJECT="$species"_"$folds"" > $config_file
         echo "RAWREADS=$raw_file_fa" >> $config_file
         echo "GENOME_SIZE=$genome_size" >> $config_file
-        echo "THREADS=16" >> $config_file
+        echo "THREADS=$threads_num" >> $config_file
         echo "MIN_READ_LENGTH=2000" >> $config_file
         echo "CNS_OVLP_OPTIONS=\"-kmer_size 13\"" >> $config_file
         echo "CNS_PCAN_OPTIONS=\"-p 100000 -k 100\"" >> $config_file
@@ -219,7 +236,7 @@ elif [ $tools == "falcon" ]
         echo "job_type=local" >> $cfg_file
         echo "pwatcher_type=blocking" >> $cfg_file
         echo "MB=262144" >> $cfg_file
-        echo "NPROC=16" >> $cfg_file
+        echo "NPROC=$threads_num" >> $cfg_file
         echo "njobs=240" >> $cfg_file
         echo "submit=/bin/bash -c \"\${CMD}\" > \"\${STDOUT_FILE}\" 2> \"\${STDERR_FILE}\"" >> $cfg_file
         echo -e "#### End: init "$cfg_file" ####\n"
@@ -255,9 +272,9 @@ elif [ $tools == "lorma" ]
     then
         # (1) 运行lorma纠错
         echo -e "\e[1;32m #### "$tools" correct step 1/2: correct #### \e[0m"
-        echo "#### Start: lorma.sh -threads 16 $raw_file_fa ####"
-        perl $scripts_path/memory3.pl memoryrecord "lorma.sh -threads 16 $raw_file_fa"
-        echo -e "#### End: lorma.sh -threads 16 $raw_file_fa ####\n"
+        echo "#### Start: lorma.sh -threads $threads_num $raw_file_fa ####"
+        perl $scripts_path/memory3.pl memoryrecord "lorma.sh -threads $threads_num $raw_file_fa"
+        echo -e "#### End: lorma.sh -threads $threads_num $raw_file_fa ####\n"
 
         # (2) 标准化校正数据文件名
         # 所有工具的校正后长读，均在其实验目录的/correct目录下，名称为corrected_longreads.fasta
@@ -297,13 +314,13 @@ elif [ $tools == "pbcr" ]
         # (1) 设置配置文件
         echo -e "\e[1;32m #### "$tools" correct step 1/3: config #### \e[0m"
         echo "#### Start: init "$config_file" ####"
-        echo "# limit to 32GB. By default the pipeline will auto-detect memory and try to use maximum. This allow limiting it" > $config_file
+        # echo "# limit to 32GB. By default the pipeline will auto-detect memory and try to use maximum. This allow limiting it" > $config_file
         echo "merSize = 14" >> $config_file
         echo "assemble = 0" >> $config_file
-        echo "ovlMemory = 250" >> $config_file
-        echo "ovlStoreMemory = 32000" >> $config_file
+        # echo "ovlMemory = 250" >> $config_file
+        # echo "ovlStoreMemory = 32000" >> $config_file
         echo "blasr = -bestn 10 -nCandidates 10" >> $config_file
-        echo "ovlThreads = 16" >> $config_file
+        echo "ovlThreads = $threads_num" >> $config_file
         echo -e "#### End: init "$config_file" ####\n"
 
         # (2) 执行PBcR纠错
@@ -378,9 +395,9 @@ elif [ $tools == "daccord" ]
 
         # (3) use daligner for self-comparison
         echo -e "\e[1;32m #### "$tools" correct step 3/5: use daligner for self-comparison #### \e[0m"
-        echo "#### Start: daligner -T16 "$db_name" "$db_name" ####"
-        perl $scripts_path/memory3.pl memoryrecord3 "daligner -T16 "$db_name" "$db_name""
-        echo -e "#### End: daligner -T16 "$db_name" "$db_name" ####\n"
+        echo "#### Start: daligner -T63 "$db_name" "$db_name" ####"
+        perl $scripts_path/memory3.pl memoryrecord3 "daligner -T63 "$db_name" "$db_name""  # 此处若-T大于等于64，就会报错core dumped
+        echo -e "#### End: daligner -T63 "$db_name" "$db_name" ####\n"
 
         # (4) 执行daccord纠错
         # 将结果重定向至文件
@@ -395,6 +412,49 @@ elif [ $tools == "daccord" ]
         python $scripts_path/py_reform/daccord_reform.py corrected_longreads_unreformed.fasta $standard_corrected_file_name
         echo -e "#### End: python $scripts_path/py_reform/daccord_reform.py corrected_longreads_unreformed.fasta $standard_corrected_file_name ####\n"
 
+
+
+####10. sprai####
+elif [ $tools == "sprai" ]
+    then
+        config_file=""$experience_dir"/"$company".spec"
+        
+        # (1) 设置配置文件
+        echo -e "\e[1;32m #### "$tools" correct step 1/3: config #### \e[0m"
+        echo "#### Start: init "$config_file" ####"
+        echo "input_for_database $raw_file_fq" > $config_file
+        echo "min_len_for_query 500" >> $config_file
+        echo "estimated_genome_size $genome_size" >> $config_file
+        echo "estimated_depth $folds" >> $config_file
+        echo "ca_path /home/wanghejie/biotools/PbCR/wgs-8.3rc2/Linux-amd64/bin" >> $config_file
+        echo "pre_partition 1" >> $config_file
+        echo "partition $threads_num" >> $config_file
+        echo "blast_path /home/wanghejie/anaconda3/envs/sprai/bin" >> $config_file
+        echo "sprai_path /home/wanghejie/anaconda3/envs/sprai/bin/bin" >> $config_file
+        echo "word_size 18" >> $config_file
+        echo "evalue 1e-50" >> $config_file
+        echo "num_threads $threads_num" >> $config_file
+        echo "trim 42" >> $config_file
+        echo -e "#### End: init "$config_file" ####\n"
+
+        # (2) 执行sprai纠错
+        echo -e "\e[1;32m #### "$tools" correct step 2/3: correct #### \e[0m"
+        echo "#### Start: ezez_vx1.pl "$config_file" -ec_only ####"
+        perl $scripts_path/memory3.pl memoryrecord "ezez_vx1.pl "$config_file" -ec_only > log.txt 2>&1"
+        echo -e "#### End: ezez_vx1.pl "$config_file" -ec_only ####\n"
+
+        # (3) 标准化校正数据文件名
+        # 所有工具的校正后长读，均在其实验目录的/correct目录下，名称为corrected_longreads.fasta
+        corrected_file="c01.fin.idfq"
+
+        echo -e "\e[1;32m #### "$tools" correct step 3/3: standard corrected reads file name #### \e[0m"
+        cd $(ls | grep "result")
+        echo "#### Start: mv $standard_corrected_file_name $experience_dir ####"
+        gzip -d "$corrected_file".gz     
+        conda deactivate
+        seqtk seq -a "$corrected_file" > $standard_corrected_file_name
+        mv $standard_corrected_file_name $experience_dir
+        echo -e "#### End: mv $standard_corrected_file_name $experience_dir ####\n"
 
 
 else

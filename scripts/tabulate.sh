@@ -3,7 +3,7 @@
 #########################################
 #  $1: species - ecoli, scere
 #  $2: folds - 10, 30, 50, 75, 100
-#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord
+#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord, sprai
 #  (all varaibles are converted to the lower cases)
 #########################################
 species="$(echo $1 | tr '[:upper:]' '[:lower:]')"
