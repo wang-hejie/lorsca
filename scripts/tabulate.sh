@@ -59,17 +59,23 @@ depa="$(grep output_depth $reads_stat_file | awk '{printf ("%.2f", $2)}')"
 if [ $tools != "raw" ]
     then
         # about correct time and mem
-        correct_time=0  # 纠错时间初始化为0
-        correct_mem=0   # 纠错内存初始化为0
+        correct_real_time=0     # 纠错真实时间初始化为0
+        correct_cpu_time=0      # 纠错cpu时间初始化为0
+        correct_mem=0           # 纠错内存初始化为0
 
         cd $reads_dir
         for i in $(find memoryrecord* -type d)
             do
-                correct_time=$(echo "$correct_time + $(grep time "$reads_dir"/"$i"/t.log | awk '{printf $2}')" | bc | awk '{printf ("%.2f", $1)}')
                 if [ $(echo "$correct_mem < $(grep maxMem "$reads_dir"/"$i"/t.log | awk '{printf $2}')" | bc) == "1" ]
                     then
                         correct_mem=$(grep maxMem "$reads_dir"/"$i"/t.log | awk '{printf ("%.2f", $2)}')
                 fi
+            done
+        
+        for i in $(find timelog* -type f)
+            do
+                correct_real_time=$(echo "scale=2; $correct_real_time + $(tail -3 $i | grep real | awk '{printf $2}' | awk 'BEGIN{FS="m"}{print $1}') + $(tail -3 $i | grep real | awk '{printf $2}' | awk 'BEGIN{FS="."}{print $1}' | awk 'BEGIN{FS="m"}{print $2}') / 60" | bc | awk '{printf ("%.2f", $1)}')
+                correct_cpu_time=$(echo "scale=2; $correct_cpu_time + $(tail -3 $i | grep user | awk '{printf $2}' | awk 'BEGIN{FS="m"}{print $1}') + $(tail -3 $i | grep user | awk '{printf $2}' | awk 'BEGIN{FS="."}{print $1}' | awk 'BEGIN{FS="m"}{print $2}') / 60" | bc | awk '{printf ("%.2f", $1)}')
             done
 fi
 
@@ -105,14 +111,14 @@ else
     raw_del_num=$(grep del_num $raw_blasr_stat_file | awk '{printf $2}')
     raw_error=$(($raw_mismatch_num+$raw_ins_num+$raw_del_num))  # raw data错误数
     raw_aligned_reads_length=$(grep aligned_base_num $raw_blasr_stat_file | awk '{printf $2}')  # raw data长度
-    sensitivity="0"$(echo "scale=2;($raw_error-$corrected_error)/$raw_error*$aligned_reads_length/$raw_aligned_reads_length" | bc)  # 敏感度
+    sensitivity=$(echo "scale=2;($raw_error-$corrected_error)/$raw_error*$aligned_reads_length/$raw_aligned_reads_length" | bc | awk '{printf ("%.2f", $1)}')  # 敏感度
 fi
 accuracy=$(echo "scale=5;(1-$corrected_error/$aligned_reads_length)*100" | bc | awk '{printf ("%.2f", $1)}')
 
 
 # 对seq相关统计结果制表
-echo -e "Sequence,Mean(x),DepA(x),Time(min),Mem(Gb),Sensitivity,Accuracy,Ins(%),Del(%),Sub(%),AARL(bp),Iden(%),Cov(%)" > $table_seq
-echo -e "$sequence,$mean_bp,$depa,$correct_time,$correct_mem,$sensitivity,$accuracy,$ins_rate,$del_rate,$sub_rate,$aarl,$iden,$cov" >> $table_seq
+echo -e "Time(min),CpuTime(min),Mem(Gb),Sequence,Mean(x),DepA(x),Sensitivity,Accuracy,Ins(%),Del(%),Sub(%),AARL(bp),Iden(%),Cov(%)" > $table_seq
+echo -e "$correct_real_time,$correct_cpu_time,$correct_mem,$sequence,$mean_bp,$depa,$sensitivity,$accuracy,$ins_rate,$del_rate,$sub_rate,$aarl,$iden,$cov" >> $table_seq
 
 
 
@@ -120,17 +126,23 @@ echo -e "$sequence,$mean_bp,$depa,$correct_time,$correct_mem,$sensitivity,$accur
 # Tabulate the statistical results of contig
 ############################################
 # about assemble time and mem
-assemble_time=0  # 组装时间初始化为0
-assemble_mem=0   # 组装内存初始化为0
+assemble_real_time=0  # 组装真实时间初始化为0
+assemble_cpu_time=0   # 组装cpu时间初始化为0
+assemble_mem=0        # 组装内存初始化为0
 
 cd $assemble_dir
 for i in $(find memoryrecord* -type d)
     do
-        assemble_time=$(echo "$assemble_time + $(grep time "$assemble_dir"/"$i"/t.log | awk '{printf $2}')" | bc | awk '{printf ("%.2f", $1)}')
         if [ $(echo "$assemble_mem < $(grep maxMem "$assemble_dir"/"$i"/t.log | awk '{printf $2}')" | bc) == "1" ]
             then
                 assemble_mem=$(grep maxMem "$assemble_dir"/"$i"/t.log | awk '{printf ("%.2f", $2)}')
         fi
+    done
+
+for i in $(find timelog* -type f)
+    do
+        assemble_real_time=$(echo "scale=2; $assemble_real_time + $(tail -3 $i | grep real | awk '{printf $2}' | awk 'BEGIN{FS="m"}{print $1}') + $(tail -3 $i | grep real | awk '{printf $2}' | awk 'BEGIN{FS="."}{print $1}' | awk 'BEGIN{FS="m"}{print $2}') / 60" | bc | awk '{printf ("%.2f", $1)}')
+        assemble_cpu_time=$(echo "scale=2; $assemble_cpu_time + $(tail -3 $i | grep user | awk '{printf $2}' | awk 'BEGIN{FS="m"}{print $1}') + $(tail -3 $i | grep user | awk '{printf $2}' | awk 'BEGIN{FS="."}{print $1}' | awk 'BEGIN{FS="m"}{print $2}') / 60" | bc | awk '{printf ("%.2f", $1)}')
     done
 
 # about quast_output.txt
@@ -138,6 +150,6 @@ n50=$(grep N50 $quast_stat_file | awk '{printf $2}')
 ctg_num=$(grep "# contigs" $quast_stat_file | tail -1 | awk '{printf $3}')
 
 # 对contig相关统计结果制表
-echo -e "Time(min),Mem(Gb),N50(bp),Ctg_num" > $table_contig
-echo -e "$assemble_time,$assemble_mem,$n50,$ctg_num" >> $table_contig
+echo -e "Time(min),CpuTime(min),Mem(Gb),N50(bp),Ctg_num" > $table_contig
+echo -e "$assemble_real_time,$assemble_cpu_time,$assemble_mem,$n50,$ctg_num" >> $table_contig
 

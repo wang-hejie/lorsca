@@ -71,18 +71,18 @@ if [ $assembler == "miniasm" ]
         if [ $company == "pacbio" ]
             then
                 echo "#### Start: minimap2 -x ava-pb -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####"
-                perl $scripts_path/memory3.pl memoryrecord_1 "minimap2 -x ava-pb -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz"
+                (time perl $scripts_path/memory3.pl memoryrecord_1 "minimap2 -x ava-pb -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz") >& timelog1.txt
                 echo -e "#### End: minimap2 -x ava-pb -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####\n"
         else
             echo "#### Start: minimap2 -x ava-ont -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####"
-            perl $scripts_path/memory3.pl memoryrecord_1 "minimap2 -x ava-ont -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz"
+            (time perl $scripts_path/memory3.pl memoryrecord_1 "minimap2 -x ava-ont -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz") >& timelog1.txt
             echo -e "#### End: minimap2 -x ava-ont -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####\n"
         fi
 
         # miniasm
         echo -e "\e[1;32m #### "$tools" assemble step 2/3: miniasm #### \e[0m"
         echo "#### Start: miniasm -f $assemble_file reads.paf.gz > reads.gfa ####"
-        perl $scripts_path/memory3.pl memoryrecord_2 "miniasm -f $assemble_file reads.paf.gz > reads.gfa"
+        (time perl $scripts_path/memory3.pl memoryrecord_2 "miniasm -f $assemble_file reads.paf.gz > reads.gfa") >& timelog2.txt
         echo -e "#### End: miniasm -f $assemble_file reads.paf.gz > reads.gfa ####\n"
 
         # 从重叠图文件中提取contig

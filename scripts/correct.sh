@@ -183,13 +183,13 @@ elif [ $tools == "mecat2" ]
         # (2) 执行correct步骤
         echo -e "\e[1;32m #### "$tools" correct step 2/4: correct #### \e[0m"
         echo "#### Start: mecat.pl correct $config_file ####"
-        perl $scripts_path/memory3.pl memoryrecord_1 "$mecat2_path/mecat.pl correct $config_file"
+        (time perl $scripts_path/memory3.pl memoryrecord_1 "$mecat2_path/mecat.pl correct $config_file") >& timelog1.txt
         echo -e "#### End: mecat.pl correct $config_file ####\n"
 
         # (3) 执行trim步骤
         echo -e "\e[1;32m #### "$tools" correct step 3/4: trim #### \e[0m"
         echo "#### Start: mecat.pl trim $config_file ####"
-        perl $scripts_path/memory3.pl memoryrecord_2 "$mecat2_path/mecat.pl trim $config_file"
+        (time perl $scripts_path/memory3.pl memoryrecord_2 "$mecat2_path/mecat.pl trim $config_file") >& timelog2.txt
         echo -e "#### End: mecat.pl trim $config_file ####\n"
 
         # (4) 标准化校正数据文件名
@@ -268,7 +268,7 @@ elif [ $tools == "falcon" ]
         # (2) 运行falcon纠错
         echo -e "\e[1;32m #### "$tools" correct step 2/3: correct #### \e[0m"
         echo "#### Start: fc_run "$cfg_file" ####"
-        perl $scripts_path/memory3.pl memoryrecord "fc_run $cfg_file"
+        (time perl $scripts_path/memory3.pl memoryrecord "fc_run $cfg_file") >& timelog.txt
         echo -e "#### End: fc_run "$cfg_file" ####\n"
 
         # (3) 将所有consensus片段文件合成1个
@@ -293,7 +293,7 @@ elif [ $tools == "lorma" ]
         # (1) 运行lorma纠错
         echo -e "\e[1;32m #### "$tools" correct step 1/2: correct #### \e[0m"
         echo "#### Start: lorma.sh -threads $threads_num $raw_file_fa ####"
-        perl $scripts_path/memory3.pl memoryrecord "lorma.sh -threads $threads_num $raw_file_fa"
+        (time perl $scripts_path/memory3.pl memoryrecord "lorma.sh -threads $threads_num $raw_file_fa") >& timelog.txt
         echo -e "#### End: lorma.sh -threads $threads_num $raw_file_fa ####\n"
 
         # (2) 标准化校正数据文件名
@@ -311,7 +311,7 @@ elif [ $tools == "canu" ]
         # (1) 运行canu纠错
         echo -e "\e[1;32m #### "$tools" correct step 1/2: correct #### \e[0m"
         echo "#### Start: canu -correct -p $species -d correct genomeSize=$genome_size useGrid=false -$company-raw $raw_file_fa ####"
-        perl $scripts_path/memory3.pl memoryrecord "canu -correct -p $species -d correct genomeSize=$genome_size useGrid=false minInputCoverage=5 stopOnLowCoverage=5 -$company-raw $raw_file_fa"
+        (time perl $scripts_path/memory3.pl memoryrecord "canu -correct -p $species -d correct genomeSize=$genome_size useGrid=false minInputCoverage=5 stopOnLowCoverage=5 -$company-raw $raw_file_fa") >& timelog.txt
         echo -e "#### End: canu -correct -p $species -d correct genomeSize=$genome_size useGrid=false -$company-raw $raw_file_fa ####\n"
 
         # (2) 标准化校正数据文件名
@@ -346,7 +346,7 @@ elif [ $tools == "pbcr" ]
         # (2) 执行PBcR纠错
         echo -e "\e[1;32m #### "$tools" correct step 2/3: correct #### \e[0m"
         echo "#### Start: PBcR -length 500 -partitions 200 -genomeSize $genome_size -libraryname $species$folds -s $config_file -fastq $raw_file_fq > run.log 2>&1 ####"
-        perl $scripts_path/memory3.pl memoryrecord "PBcR -length 500 -partitions 200 -genomeSize $genome_size -libraryname $species$folds -s $config_file -fastq $raw_file_fq > run.log 2>&1"
+        (time perl $scripts_path/memory3.pl memoryrecord "PBcR -length 500 -partitions 200 -genomeSize $genome_size -libraryname $species$folds -s $config_file -fastq $raw_file_fq > run.log 2>&1") >& timelog.txt
         echo -e "#### End: PBcR -length 500 -partitions 200 -genomeSize $genome_size -libraryname $species$folds -s $config_file -fastq $raw_file_fq > run.log 2>&1 ####\n"
 
         # (3) 标准化校正数据文件名
@@ -364,7 +364,7 @@ elif [ $tools == "flas" ]
         # (1) 执行flas纠错
         echo -e "\e[1;32m #### "$tools" correct step 1/2: correct #### \e[0m"
         echo "#### Start: python $flas_path/runFLAS.py $raw_file_fa -c $folds ####"
-        perl $scripts_path/memory3.pl memoryrecord "python $flas_path/runFLAS.py $raw_file_fa -c $folds"
+        (time perl $scripts_path/memory3.pl memoryrecord "python $flas_path/runFLAS.py $raw_file_fa -c $folds") >& timelog.txt
         echo -e "#### End: python $flas_path/runFLAS.py $raw_file_fa -c $folds ####\n"
 
         # (2) 标准化校正数据文件名
@@ -390,7 +390,7 @@ elif [ $tools == "consent" ]
         # CONSENT可以设置输出文件名，因此可省略标准化文件名步骤
         echo -e "\e[1;32m #### "$tools" correct step 1/1: correct #### \e[0m"
         echo "#### Start: CONSENT-correct --in $raw_file_fa --out $standard_corrected_file_name --type $type ####"
-        perl $scripts_path/memory3.pl memoryrecord "CONSENT-correct --in $raw_file_fa --out $standard_corrected_file_name --type $type"
+        (time perl $scripts_path/memory3.pl memoryrecord "CONSENT-correct --in $raw_file_fa --out $standard_corrected_file_name --type $type") >& timelog.txt
         echo -e "#### End: CONSENT-correct --in $raw_file_fa --out $standard_corrected_file_name --type $type ####\n"
 
 
@@ -404,26 +404,26 @@ elif [ $tools == "daccord" ]
         # (1) make raw reads file to Dazzler Database
         echo -e "\e[1;32m #### "$tools" correct step 1/5: make dazzler database #### \e[0m"
         echo "#### Start: fasta2DB $db_name $raw_file_fa ####"
-        perl $scripts_path/memory3.pl memoryrecord1 "fasta2DB $db_name $raw_file_fa"
+        (time perl $scripts_path/memory3.pl memoryrecord_1 "fasta2DB $db_name $raw_file_fa") >& timelog1.txt
         echo -e "#### End: fasta2DB $db_name $raw_file_fa ####\n"
 
         # (2) 过滤DB中<14bp的reads，否则运行daligner时会报错
         echo -e "\e[1;32m #### "$tools" correct step 2/5: filter reads which < 14bp #### \e[0m"
         echo "#### Start: DBsplit -x14 $db_name ####"
-        perl $scripts_path/memory3.pl memoryrecord2 "DBsplit -x14 $db_name"
+        (time perl $scripts_path/memory3.pl memoryrecord_2 "DBsplit -x14 $db_name") >& timelog2.txt
         echo -e "#### End: DBsplit -x14 $db_name ####\n"
 
         # (3) use daligner for self-comparison
         echo -e "\e[1;32m #### "$tools" correct step 3/5: use daligner for self-comparison #### \e[0m"
         echo "#### Start: daligner -T63 "$db_name" "$db_name" ####"
-        perl $scripts_path/memory3.pl memoryrecord3 "daligner -T63 "$db_name" "$db_name""  # 此处若-T大于等于64，就会报错core dumped
+        (time perl $scripts_path/memory3.pl memoryrecord_3 "daligner -T63 "$db_name" "$db_name"") >& timelog3.txt  # 此处若-T大于等于64，就会报错core dumped
         echo -e "#### End: daligner -T63 "$db_name" "$db_name" ####\n"
 
         # (4) 执行daccord纠错
         # 将结果重定向至文件
         echo -e "\e[1;32m #### "$tools" correct step 4/5: correct #### \e[0m"
         echo "#### Start: daccord "$experience_dir"/"$db_prefix"."$db_prefix".las $db_name > corrected_longreads_unreformed.fasta ####"
-        perl $scripts_path/memory3.pl memoryrecord4 "daccord "$experience_dir"/"$db_prefix"."$db_prefix".las $db_name > corrected_longreads_unreformed.fasta"
+        (time perl $scripts_path/memory3.pl memoryrecord_4 "daccord "$experience_dir"/"$db_prefix"."$db_prefix".las $db_name > corrected_longreads_unreformed.fasta") >& timelog4.txt
         echo -e "#### End: daccord "$experience_dir"/"$db_prefix"."$db_prefix".las $db_name > corrected_longreads_unreformed.fasta ####\n"
 
         # (5) 运行自写py脚本，将daccord输出转变为标准fasta格式
@@ -460,7 +460,7 @@ elif [ $tools == "sprai" ]
         # (2) 执行sprai纠错
         echo -e "\e[1;32m #### "$tools" correct step 2/3: correct #### \e[0m"
         echo "#### Start: ezez_vx1.pl "$config_file" -ec_only ####"
-        perl $scripts_path/memory3.pl memoryrecord "ezez_vx1.pl "$config_file" -ec_only > log.txt 2>&1"
+        (time perl $scripts_path/memory3.pl memoryrecord "ezez_vx1.pl "$config_file" -ec_only > log.txt 2>&1") >& timelog.txt
         echo -e "#### End: ezez_vx1.pl "$config_file" -ec_only ####\n"
 
         # (3) 标准化校正数据文件名
@@ -487,28 +487,27 @@ elif [ $tools == "pbdagcon" ]
         # (1) make raw reads file to Dazzler Database
         echo -e "\e[1;32m #### "$tools" correct step 1/4: make dazzler database #### \e[0m"
         echo "#### Start: fasta2DB $db_name $raw_file_fa ####"
-        perl $scripts_path/memory3.pl memoryrecord1 "fasta2DB $db_name $raw_file_fa"
+        (time perl $scripts_path/memory3.pl memoryrecord_1 "fasta2DB $db_name $raw_file_fa") >& timelog1.txt
         echo -e "#### End: fasta2DB $db_name $raw_file_fa ####\n"
 
         # (2) 过滤DB中<14bp的reads，否则运行daligner时会报错
         echo -e "\e[1;32m #### "$tools" correct step 2/4: filter reads which < 16bp #### \e[0m"
         echo "#### Start: DBsplit -x16 $db_name ####"
-        perl $scripts_path/memory3.pl memoryrecord2 "DBsplit -x16 $db_name"
+        (time perl $scripts_path/memory3.pl memoryrecord_2 "DBsplit -x16 $db_name") >& timelog2.txt
         echo -e "#### End: DBsplit -x16 $db_name ####\n"
 
         # (3) use daligner for self-comparison
         echo -e "\e[1;32m #### "$tools" correct step 3/4: use daligner for self-comparison #### \e[0m"
         echo "#### Start: daligner -T45 "$db_name" "$db_name" ####"
-        perl $scripts_path/memory3.pl memoryrecord3 "daligner -T45 "$db_name" "$db_name""  # 此处若-T大于等于64，就会报错core dumped
+        (time perl $scripts_path/memory3.pl memoryrecord_3 "daligner -T45 "$db_name" "$db_name"") >& timelog3.txt  # 此处若-T大于等于64，就会报错core dumped
         echo -e "#### End: daligner -T45 "$db_name" "$db_name" ####\n"
 
         # (4) 执行pbdagcon(dazcon)纠错
         # 将结果重定向至标准化校正数据文件名
         echo -e "\e[1;32m #### "$tools" correct step 4/4: correct and standard file name #### \e[0m"
         echo "#### Start: dazcon -ox -j 512 -s $db_name -a "$db_prefix"."$db_prefix".las > $standard_corrected_file_name ####"
-        perl $scripts_path/memory3.pl memoryrecord4 "dazcon -ox -j 512 -s $db_name -a "$db_prefix"."$db_prefix".las > $standard_corrected_file_name"
+        (time perl $scripts_path/memory3.pl memoryrecord_4 "dazcon -ox -j 512 -s $db_name -a "$db_prefix"."$db_prefix".las > $standard_corrected_file_name") >& timelog4.txt
         echo -e "#### End: dazcon -ox -j 512 -s $db_name -a "$db_prefix"."$db_prefix".las > $standard_corrected_file_name ####\n"
-
 
 
 else

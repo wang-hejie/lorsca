@@ -9,7 +9,7 @@ software_path = os.path.abspath(os.path.dirname(script_path) + os.path.sep + "."
 lorsca_path = software_path + '/lorsca.py'
 
 # species_list = ['ecoli', 'scere']
-species_list = ['ecoli']
+species_list = ['scere']
 # folds_list = ['10', '30', '50', '75', '100']
 folds_list = ['30']
 tools_list = ['raw', 'mecat2', 'falcon', 'lorma', 'canu', 'pbcr','flas', 'consent', 'daccord', 'sprai', 'pbdagcon']
