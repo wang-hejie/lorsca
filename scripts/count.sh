@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #########################################
-#  $1: species - ecoli, scere
+#  $1: species - ecoli, scere, dmela, athal, human
 #  $2: folds - 10, 30, 50, 75, 100
-#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord, sprai
+#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord, sprai, pbdagcon
 #  (all varaibles are converted to the lower cases)
 #########################################
 species="$(echo $1 | tr '[:upper:]' '[:lower:]')"
@@ -19,7 +19,8 @@ experience_dir="$home/experience/"$species"_"$folds"/$tools"  # 执行统计的�
 dnadiff_dir="$experience_dir/dnadiff_result"  # 执行dnadiff的目录
 blasr_dir="$experience_dir/blasr_result"  # 执行blasr的目录
 quast_dir="$experience_dir/quast_result"  # 执行quast的目录
-raw_file_fa="$experience_dir/raw_data/raw_longreads_"$folds"x.fasta"  # 原始long reads的fasta
+raw_dir="$home/experience/"$species"_"$folds"/raw"  # raw data统计目录
+raw_file_fa="$raw_dir/raw_data/raw_longreads_"$folds"x.fasta"  # 原始long reads的fasta
 corrected_reads_file="$experience_dir/correct/corrected_longreads.fasta"  # 纠错后reads文件
 contig_file="$experience_dir/assemble/contig.fasta"  # 组装产生的contig文件
 
@@ -110,7 +111,3 @@ echo -e "#### End: quast.py -o . -r $ref_file_fna -g $ref_file_gff -m 500 -t $th
 echo "#### Start: mv report.txt quast_output.txt ####"
 mv report.txt quast_output.txt
 echo -e "#### End: mv report.txt quast_output.txt ####\n"
-
-
-#### 自写评价指标 ####
-# sensitivity, accuracy
