@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #########################################
-#  $1: species - ecoli, scere
+#  $1: species - ecoli, scere, dmela, athal, human
 #  $2: folds - 10, 30, 50, 75, 100
-#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord, sprai
+#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord, sprai, pbdagcon
 #  (all varaibles are converted to the lower cases)
 #########################################
 species="$(echo $1 | tr '[:upper:]' '[:lower:]')"

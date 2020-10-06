@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #########################################
-#  $1: species - ecoli, scere
+#  $1: species - ecoli, scere, dmela, athal, human
 #  $2: folds - 10, 30, 50, 75, 100
-#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord, sprai
+#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord, sprai, pbdagcon
 #  $4: company - pacbio, ont
 #  (all varaibles are converted to the lower cases)
 #########################################
@@ -48,9 +48,18 @@ echo "threads_num = $threads_num"
 #########################################
 if [ $species == "ecoli" ]
     then
-        genome_size=4800000
-    else
-        genome_size=12000000
+        genome_size=4800000    # 大肠杆菌
+elif [ $species == "scere" ]
+    then
+        genome_size=12000000   # 酿酒酵母
+elif [ $species == "dmela" ]
+    then
+        genome_size=143000000  # 黑腹果蝇
+elif [ $species == "athal" ]
+    then
+        genome_size=119000000  # 拟南芥
+else
+    genome_size=3088000000     # 人类
 fi
 
 
@@ -70,10 +79,13 @@ cd $experience_dir
 #########################################
 # Set tool installed path
 #########################################
-# 1. mecat2
+# 1. raw
+# 无工具
+
+# 2. mecat2
 mecat2_path="/home/wanghejie/biotools/MECAT2/Linux-amd64/bin"
 
-# 2. falcon
+# 3. falcon
 if [ $tools == "falcon" ]
     then
         source activate
@@ -81,7 +93,7 @@ if [ $tools == "falcon" ]
         conda activate falcon
 fi
 
-# 3. lorma
+# 4. lorma
 if [ $tools == "lorma" ]
     then
         source activate
@@ -89,7 +101,7 @@ if [ $tools == "lorma" ]
         conda activate lorma
 fi
 
-# 4. canu
+# 5. canu
 if [ $tools == "canu" ]
     then
         source activate
@@ -97,24 +109,32 @@ if [ $tools == "canu" ]
         conda activate canu
 fi
 
-# 5. pbcr
+# 6. pbcr
 # 直接调用PBcR即可
 
-# 6. flas
+# 7. flas
 flas_path="/home/wanghejie/biotools/FLAS"
 
-# 7. consent
+# 8. consent
 # 直接调用CONSENT-correct即可
 
-# 8. daccord
+# 9. daccord
 # 直接调用fasta2DB, daligner, daccord即可
 
-# 9. sprai
+# 10. sprai
 if [ $tools == "sprai" ]
     then
         source activate
         source deactivate
         conda activate sprai
+fi
+
+# 11. pbdagcon
+if [ $tools == "pbdagcon" ]
+    then
+        source activate
+        source deactivate
+        conda activate pbdagcon
 fi
 
 
@@ -427,13 +447,13 @@ elif [ $tools == "sprai" ]
         echo "estimated_genome_size $genome_size" >> $config_file
         echo "estimated_depth $folds" >> $config_file
         echo "ca_path /home/wanghejie/biotools/PbCR/wgs-8.3rc2/Linux-amd64/bin" >> $config_file
-        echo "pre_partition 1" >> $config_file
-        echo "partition $threads_num" >> $config_file
+        echo "pre_partition 4" >> $config_file
+        echo "partition 128" >> $config_file
         echo "blast_path /home/wanghejie/anaconda3/envs/sprai/bin" >> $config_file
         echo "sprai_path /home/wanghejie/anaconda3/envs/sprai/bin/bin" >> $config_file
         echo "word_size 18" >> $config_file
         echo "evalue 1e-50" >> $config_file
-        echo "num_threads $threads_num" >> $config_file
+        echo "num_threads 128" >> $config_file
         echo "trim 42" >> $config_file
         echo -e "#### End: init "$config_file" ####\n"
 
@@ -455,6 +475,40 @@ elif [ $tools == "sprai" ]
         seqtk seq -a "$corrected_file" > $standard_corrected_file_name
         mv $standard_corrected_file_name $experience_dir
         echo -e "#### End: mv $standard_corrected_file_name $experience_dir ####\n"
+
+
+
+####11. pbdagcon####
+elif [ $tools == "pbdagcon" ]
+    then
+        db_prefix="$species"_"$folds"
+        db_name="$experience_dir"/"$db_prefix".db
+
+        # (1) make raw reads file to Dazzler Database
+        echo -e "\e[1;32m #### "$tools" correct step 1/4: make dazzler database #### \e[0m"
+        echo "#### Start: fasta2DB $db_name $raw_file_fa ####"
+        perl $scripts_path/memory3.pl memoryrecord1 "fasta2DB $db_name $raw_file_fa"
+        echo -e "#### End: fasta2DB $db_name $raw_file_fa ####\n"
+
+        # (2) 过滤DB中<14bp的reads，否则运行daligner时会报错
+        echo -e "\e[1;32m #### "$tools" correct step 2/4: filter reads which < 16bp #### \e[0m"
+        echo "#### Start: DBsplit -x16 $db_name ####"
+        perl $scripts_path/memory3.pl memoryrecord2 "DBsplit -x16 $db_name"
+        echo -e "#### End: DBsplit -x16 $db_name ####\n"
+
+        # (3) use daligner for self-comparison
+        echo -e "\e[1;32m #### "$tools" correct step 3/4: use daligner for self-comparison #### \e[0m"
+        echo "#### Start: daligner -T45 "$db_name" "$db_name" ####"
+        perl $scripts_path/memory3.pl memoryrecord3 "daligner -T45 "$db_name" "$db_name""  # 此处若-T大于等于64，就会报错core dumped
+        echo -e "#### End: daligner -T45 "$db_name" "$db_name" ####\n"
+
+        # (4) 执行pbdagcon(dazcon)纠错
+        # 将结果重定向至标准化校正数据文件名
+        echo -e "\e[1;32m #### "$tools" correct step 4/4: correct and standard file name #### \e[0m"
+        echo "#### Start: dazcon -ox -j 512 -s $db_name -a "$db_prefix"."$db_prefix".las > $standard_corrected_file_name ####"
+        perl $scripts_path/memory3.pl memoryrecord4 "dazcon -ox -j 512 -s $db_name -a "$db_prefix"."$db_prefix".las > $standard_corrected_file_name"
+        echo -e "#### End: dazcon -ox -j 512 -s $db_name -a "$db_prefix"."$db_prefix".las > $standard_corrected_file_name ####\n"
+
 
 
 else
