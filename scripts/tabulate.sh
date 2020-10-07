@@ -47,6 +47,8 @@ raw_reads_stat_file="$raw_dir/raw_data/*.log"
 table_seq="$experience_dir/table_seq.csv"
 table_contig="$experience_dir/table_contig.csv"
 
+#scripts path
+scripts_path="$(cd `dirname $0`; pwd)"
 
 #########################################
 # Tabulate the statistical results of seq
@@ -87,11 +89,11 @@ sub_rate=$(echo "$(grep mismatch_rate $blasr_stat_file | awk '{printf $2}') * 10
 
 # about dnadiff_output.txt
 aarl=$(grep AvgLength $dnadiff_stat_file | head -1 | awk '{printf ("%.0f", $3)}')
-iden=$(grep AvgIdentity $dnadiff_stat_file | head -1 | awk '{printf $3}')
-cov=$(grep AlignedBases $dnadiff_stat_file | head -1 | awk '{printf $2}' | cut -d '(' -f2|cut -d '%' -f1)
+# iden=$(grep AvgIdentity $dnadiff_stat_file | head -1 | awk '{printf $3}')
+seq_cov=$(grep AlignedBases $dnadiff_stat_file | head -1 | awk '{printf $2}' | cut -d '(' -f2|cut -d '%' -f1)
 
 
-# sensitivity, accuracy
+# sensitivity, seq_accuracy
 mismatch_num=$(grep mismatch_num $blasr_stat_file | awk '{printf $2}')
 ins_num=$(grep ins_num $blasr_stat_file | awk '{printf $2}')
 del_num=$(grep del_num $blasr_stat_file | awk '{printf $2}')
@@ -113,12 +115,12 @@ else
     raw_aligned_reads_length=$(grep aligned_base_num $raw_blasr_stat_file | awk '{printf $2}')  # raw data长度
     sensitivity=$(echo "scale=2;($raw_error-$corrected_error)/$raw_error*$aligned_reads_length/$raw_aligned_reads_length" | bc | awk '{printf ("%.2f", $1)}')  # 敏感度
 fi
-accuracy=$(echo "scale=5;(1-$corrected_error/$aligned_reads_length)*100" | bc | awk '{printf ("%.2f", $1)}')
+seq_accuracy=$(echo "scale=5;(1-$corrected_error/$aligned_reads_length)*100" | bc | awk '{printf ("%.2f", $1)}')
 
 
 # 对seq相关统计结果制表
-echo -e "Time(min),CpuTime(min),Mem(Gb),Sequence,Mean(x),DepA(x),Sensitivity,Accuracy,Ins(%),Del(%),Sub(%),AARL(bp),Iden(%),Cov(%)" > $table_seq
-echo -e "$correct_real_time,$correct_cpu_time,$correct_mem,$sequence,$mean_bp,$depa,$sensitivity,$accuracy,$ins_rate,$del_rate,$sub_rate,$aarl,$iden,$cov" >> $table_seq
+echo -e "Time(min),CpuTime(min),Mem(Gb),Sequence,Mean(x),DepA(x),Sensitivity,Accuracy,Ins(%),Del(%),Sub(%),AARL(bp),Cov(%)" > $table_seq
+echo -e "$correct_real_time,$correct_cpu_time,$correct_mem,$sequence,$mean_bp,$depa,$sensitivity,$seq_accuracy,$ins_rate,$del_rate,$sub_rate,$aarl,$seq_cov" >> $table_seq
 
 
 
@@ -145,11 +147,22 @@ for i in $(find timelog* -type f)
         assemble_cpu_time=$(echo "scale=2; $assemble_cpu_time + $(tail -3 $i | grep user | awk '{printf $2}' | awk 'BEGIN{FS="m"}{print $1}') + $(tail -3 $i | grep user | awk '{printf $2}' | awk 'BEGIN{FS="."}{print $1}' | awk 'BEGIN{FS="m"}{print $2}') / 60" | bc | awk '{printf ("%.2f", $1)}')
     done
 
+
 # about quast_output.txt
-n50=$(grep N50 $quast_stat_file | awk '{printf $2}')
-ctg_num=$(grep "# contigs" $quast_stat_file | tail -1 | awk '{printf $3}')
+n50=$(grep N50 $quast_stat_file | awk '{printf $2}')  # N50
+ctg_num=$(grep "# contigs" $quast_stat_file | tail -1 | awk '{printf $3}')  # ctg条数
+ctg_cov=$(grep "Genome fraction" $quast_stat_file | awk '{printf $4}')  # 参考基因组被ctg覆盖的比例
+
+mismatch_per100=$(grep "mismatches" $quast_stat_file | awk '{printf $6}')  # ctg上每100kb出现的mismatches数量
+indel_per100=$(grep "indels" $quast_stat_file | awk '{printf $6}')  # ctg上每100kb出现的indels数量
+ctg_accuracy=$(echo "scale=2;1 - ($mismatch_per100 + $indel_per100) / 100000" | bc | awk '{printf ("%.2f", $1)}')  # ctg自身的正确率
+
+total_length=$(grep "Total length" $quast_stat_file | tail -1 | awk '{printf $3}')  # 所有组装好ctg的总长度
+nga50=$(grep "NGA50" $quast_stat_file | awk '{printf $2}')  # NGA50
+dup_ratio=$(grep "Duplication ratio" $quast_stat_file | awk '{printf $3}')  # ctg中比对上的碱基总数，除以参考基因组碱基总数。超过1越多越差，代表组装时对于重复区域进行了多次组装
+
 
 # 对contig相关统计结果制表
-echo -e "Time(min),CpuTime(min),Mem(Gb),N50(bp),Ctg_num" > $table_contig
-echo -e "$assemble_real_time,$assemble_cpu_time,$assemble_mem,$n50,$ctg_num" >> $table_contig
+echo -e "Ctg_num,Cov,Accuracy,Total length(bp),N50(bp),NGA50(bp),Duplication ratio,Time(min),CpuTime(min),Mem(Gb)" > $table_contig
+echo -e "$ctg_num,$ctg_cov,$ctg_accuracy,$total_length,$n50,$nga50,$dup_ratio,$assemble_real_time,$assemble_cpu_time,$assemble_mem" >> $table_contig
 
