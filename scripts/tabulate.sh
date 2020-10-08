@@ -90,7 +90,8 @@ sub_rate=$(echo "$(grep mismatch_rate $blasr_stat_file | awk '{printf $2}') * 10
 # about dnadiff_output.txt
 aarl=$(grep AvgLength $dnadiff_stat_file | head -1 | awk '{printf ("%.0f", $3)}')
 # iden=$(grep AvgIdentity $dnadiff_stat_file | head -1 | awk '{printf $3}')
-seq_cov=$(grep AlignedBases $dnadiff_stat_file | head -1 | awk '{printf $2}' | cut -d '(' -f2|cut -d '%' -f1)
+seq_cov=$(grep AlignedBases $dnadiff_stat_file | head -1 | awk '{printf $2}' | cut -d '(' -f2 | cut -d '%' -f1)
+aligned_rate=$(grep AlignedBases $dnadiff_stat_file | head -1 | awk '{printf $3}' | cut -d '(' -f2 | cut -d '%' -f1)
 
 
 # sensitivity, seq_accuracy
@@ -98,7 +99,7 @@ mismatch_num=$(grep mismatch_num $blasr_stat_file | awk '{printf $2}')
 ins_num=$(grep ins_num $blasr_stat_file | awk '{printf $2}')
 del_num=$(grep del_num $blasr_stat_file | awk '{printf $2}')
 corrected_error=$(($mismatch_num+$ins_num+$del_num))  # corrected data错误数
-aligned_reads_length=$(grep aligned_base_num $blasr_stat_file | awk '{printf $2}')  # corrected data长度
+aligned_reads_length=$(grep aligned_base_num $blasr_stat_file | awk '{printf $2}')  # corrected data比对长度
 if [ $tools == "raw" ]
     then
         echo -e "\e[1;35m raw data has no sensitivity. \e[0m"
@@ -112,15 +113,17 @@ else
     raw_ins_num=$(grep ins_num $raw_blasr_stat_file | awk '{printf $2}')
     raw_del_num=$(grep del_num $raw_blasr_stat_file | awk '{printf $2}')
     raw_error=$(($raw_mismatch_num+$raw_ins_num+$raw_del_num))  # raw data错误数
-    raw_aligned_reads_length=$(grep aligned_base_num $raw_blasr_stat_file | awk '{printf $2}')  # raw data长度
+    raw_aligned_reads_length=$(grep aligned_base_num $raw_blasr_stat_file | awk '{printf $2}')  # raw data比对长度
     sensitivity=$(echo "scale=2;($raw_error-$corrected_error)/$raw_error*$aligned_reads_length/$raw_aligned_reads_length" | bc | awk '{printf ("%.2f", $1)}')  # 敏感度
 fi
-seq_accuracy=$(echo "scale=5;(1-$corrected_error/$aligned_reads_length)*100" | bc | awk '{printf ("%.2f", $1)}')
+seq_accuracy=$(echo "scale=5;(1-$corrected_error/$aligned_reads_length)*100" | bc | awk '{printf ("%.2f", $1)}')  # 纠错后seq本身的准确率，而不是纠错的准确率
+
+# output_total_bp=$(echo "$sequence * $mean_bp" | bc | awk '{printf ("%.0f", $1)}')  # 纠错后输出的总碱基数
 
 
 # 对seq相关统计结果制表
-echo -e "Time(min),CpuTime(min),Mem(Gb),Sequence,Mean(x),DepA(x),Sensitivity,Accuracy,Ins(%),Del(%),Sub(%),AARL(bp),Cov(%)" > $table_seq
-echo -e "$correct_real_time,$correct_cpu_time,$correct_mem,$sequence,$mean_bp,$depa,$sensitivity,$seq_accuracy,$ins_rate,$del_rate,$sub_rate,$aarl,$seq_cov" >> $table_seq
+echo -e "Time(min),CpuTime(min),Mem(Gb),Sequence,Mean(x),DepA(x),Sensitivity,Accuracy(%),Ins(%),Del(%),Sub(%),Alignment rate(%),AARL(bp),Cov(%)" > $table_seq
+echo -e "$correct_real_time,$correct_cpu_time,$correct_mem,$sequence,$mean_bp,$depa,$sensitivity,$seq_accuracy,$ins_rate,$del_rate,$sub_rate,$aligned_rate,$aarl,$seq_cov" >> $table_seq
 
 
 
@@ -155,14 +158,14 @@ ctg_cov=$(grep "Genome fraction" $quast_stat_file | awk '{printf $4}')  # 参考
 
 mismatch_per100=$(grep "mismatches" $quast_stat_file | awk '{printf $6}')  # ctg上每100kb出现的mismatches数量
 indel_per100=$(grep "indels" $quast_stat_file | awk '{printf $6}')  # ctg上每100kb出现的indels数量
-ctg_accuracy=$(echo "scale=2;1 - ($mismatch_per100 + $indel_per100) / 100000" | bc | awk '{printf ("%.2f", $1)}')  # ctg自身的正确率
+ctg_accuracy=$(echo "scale=6;(1 - ($mismatch_per100 + $indel_per100) / 100000) * 100" | bc | awk '{printf ("%.2f", $1)}')  # ctg自身的正确率
 
 total_length=$(grep "Total length" $quast_stat_file | tail -1 | awk '{printf $3}')  # 所有组装好ctg的总长度
 nga50=$(grep "NGA50" $quast_stat_file | awk '{printf $2}')  # NGA50
-dup_ratio=$(grep "Duplication ratio" $quast_stat_file | awk '{printf $3}')  # ctg中比对上的碱基总数，除以参考基因组碱基总数。超过1越多越差，代表组装时对于重复区域进行了多次组装
+dup_ratio=$(grep "Duplication ratio" $quast_stat_file | awk '{printf $3}')  # ctg中比对上的碱基总数，除以参考基因组碱基总数。取值大于1才有意义，超过1越多越差，代表组装时对于重复区域进行了多次组装
 
 
 # 对contig相关统计结果制表
-echo -e "Ctg_num,Cov,Accuracy,Total length(bp),N50(bp),NGA50(bp),Duplication ratio,Time(min),CpuTime(min),Mem(Gb)" > $table_contig
+echo -e "Ctg_num,Cov(%),Accuracy(%),Total length(bp),N50(bp),NGA50(bp),Duplication ratio,Time(min),CpuTime(min),Mem(Gb)" > $table_contig
 echo -e "$ctg_num,$ctg_cov,$ctg_accuracy,$total_length,$n50,$nga50,$dup_ratio,$assemble_real_time,$assemble_cpu_time,$assemble_mem" >> $table_contig
 
