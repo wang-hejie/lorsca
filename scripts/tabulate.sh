@@ -154,7 +154,7 @@ for i in $(find timelog* -type f)
 # about quast_output.txt
 n50=$(grep N50 $quast_stat_file | awk '{printf $2}')  # N50
 ctg_num=$(grep "# contigs" $quast_stat_file | tail -1 | awk '{printf $3}')  # ctg条数
-ctg_cov=$(grep "Genome fraction" $quast_stat_file | awk '{printf $4}')  # 参考基因组被ctg覆盖的比例
+ctg_cov=$(grep "Genome fraction" $quast_stat_file | awk '{printf ("%.2f", $4)}')  # 参考基因组被ctg覆盖的比例
 
 mismatch_per100=$(grep "mismatches" $quast_stat_file | awk '{printf $6}')  # ctg上每100kb出现的mismatches数量
 indel_per100=$(grep "indels" $quast_stat_file | awk '{printf $6}')  # ctg上每100kb出现的indels数量
