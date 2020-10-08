@@ -163,9 +163,10 @@ ctg_accuracy=$(echo "scale=6;(1 - ($mismatch_per100 + $indel_per100) / 100000) *
 total_length=$(grep "Total length" $quast_stat_file | tail -1 | awk '{printf $3}')  # 所有组装好ctg的总长度
 nga50=$(grep "NGA50" $quast_stat_file | awk '{printf $2}')  # NGA50
 dup_ratio=$(grep "Duplication ratio" $quast_stat_file | awk '{printf $3}')  # ctg中比对上的碱基总数，除以参考基因组碱基总数。取值大于1才有意义，超过1越多越差，代表组装时对于重复区域进行了多次组装
+misassemblies=$(grep "# misassemblies" $quast_stat_file | head -1 | awk '{printf $3}')  # ctg在比对回参考基因组的过程中产生断点，且该断点是组装时的组装错误导致的
 
 
 # 对contig相关统计结果制表
-echo -e "Ctg_num,Cov(%),Accuracy(%),Total length(bp),N50(bp),NGA50(bp),Duplication ratio,Time(min),CpuTime(min),Mem(Gb)" > $table_contig
-echo -e "$ctg_num,$ctg_cov,$ctg_accuracy,$total_length,$n50,$nga50,$dup_ratio,$assemble_real_time,$assemble_cpu_time,$assemble_mem" >> $table_contig
+echo -e "Ctg_num,Cov(%),Accuracy(%),Total length(bp),N50(bp),NGA50(bp),Misassemblies,Duplication ratio,Time(min),CpuTime(min),Mem(Gb)" > $table_contig
+echo -e "$ctg_num,$ctg_cov,$ctg_accuracy,$total_length,$n50,$nga50,$misassemblies,$dup_ratio,$assemble_real_time,$assemble_cpu_time,$assemble_mem" >> $table_contig
 
