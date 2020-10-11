@@ -255,16 +255,16 @@ elif [ $tools == "falcon" ]
         echo "[job.defaults]" >> $cfg_file
         echo "job_type=local" >> $cfg_file
         echo "pwatcher_type=blocking" >> $cfg_file
-        echo "MB=262144" >> $cfg_file
-        echo "NPROC=$threads_num" >> $cfg_file
-        echo "njobs=240" >> $cfg_file
+        echo "MB=16121" >> $cfg_file
+        echo "NPROC=12" >> $cfg_file
+        echo "njobs=32" >> $cfg_file
         echo "submit=/bin/bash -c \"\${CMD}\" > \"\${STDOUT_FILE}\" 2> \"\${STDERR_FILE}\"" >> $cfg_file
         echo -e "#### End: init "$cfg_file" ####\n"
 
         echo "#### Start: init "$fofn_file" ####"
         echo $raw_file_fa > $fofn_file
         echo -e "#### End: init "$fofn_file" ####\n"
-
+ 
         # (2) 运行falcon纠错
         echo -e "\e[1;32m #### "$tools" correct step 2/3: correct #### \e[0m"
         echo "#### Start: fc_run "$cfg_file" ####"
@@ -292,9 +292,9 @@ elif [ $tools == "lorma" ]
     then
         # (1) 运行lorma纠错
         echo -e "\e[1;32m #### "$tools" correct step 1/2: correct #### \e[0m"
-        echo "#### Start: lorma.sh -threads $threads_num $raw_file_fa ####"
-        (time perl $scripts_path/memory3.pl memoryrecord "lorma.sh -threads $threads_num $raw_file_fa") >& timelog.txt
-        echo -e "#### End: lorma.sh -threads $threads_num $raw_file_fa ####\n"
+        echo "#### Start: lorma.sh -threads 256 $raw_file_fa ####"
+        (time perl $scripts_path/memory3.pl memoryrecord "lorma.sh -threads 256 $raw_file_fa") >& timelog.txt
+        echo -e "#### End: lorma.sh -threads 256 $raw_file_fa ####\n"
 
         # (2) 标准化校正数据文件名
         # 所有工具的校正后长读，均在其实验目录的/correct目录下，名称为corrected_longreads.fasta

@@ -122,7 +122,7 @@ seq_accuracy=$(echo "scale=5;(1-$corrected_error/$aligned_reads_length)*100" | b
 
 
 # 对seq相关统计结果制表
-echo -e "Time(min),CpuTime(min),Mem(Gb),Sequence,Mean(x),DepA(x),Sensitivity,Accuracy(%),Ins(%),Del(%),Sub(%),Alignment rate(%),AARL(bp),Cov(%)" > $table_seq
+echo -e "RunTime(min),CpuTime(min),Mem(Gb),Sequence,Mean(x),DepA(x),Sensitivity,Accuracy(%),Ins(%),Del(%),Sub(%),Alignment rate(%),AARL(bp),Cov(%)" > $table_seq
 echo -e "$correct_real_time,$correct_cpu_time,$correct_mem,$sequence,$mean_bp,$depa,$sensitivity,$seq_accuracy,$ins_rate,$del_rate,$sub_rate,$aligned_rate,$aarl,$seq_cov" >> $table_seq
 
 
@@ -167,6 +167,6 @@ misassemblies=$(grep "# misassemblies" $quast_stat_file | head -1 | awk '{printf
 
 
 # 对contig相关统计结果制表
-echo -e "Ctg_num,Cov(%),Accuracy(%),Total length(bp),N50(bp),NGA50(bp),Misassemblies,Duplication ratio,Time(min),CpuTime(min),Mem(Gb)" > $table_contig
+echo -e "Ctg_num,Cov(%),Accuracy(%),Total length(bp),N50(bp),NGA50(bp),Misassemblies,Duplication ratio,RunTime(min),CpuTime(min),Mem(Gb)" > $table_contig
 echo -e "$ctg_num,$ctg_cov,$ctg_accuracy,$total_length,$n50,$nga50,$misassemblies,$dup_ratio,$assemble_real_time,$assemble_cpu_time,$assemble_mem" >> $table_contig
 

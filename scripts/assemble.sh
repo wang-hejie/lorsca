@@ -29,6 +29,16 @@ scripts_path="$(cd `dirname $0`; pwd)"
 
 
 #########################################
+# set threads num
+#########################################
+cpu=$(cat /proc/cpuinfo |grep "physical id"|sort|uniq|wc -l)
+cpu_cores=$(cat /proc/cpuinfo |grep "cpu cores"|uniq|wc -l)
+core_processor=$(cat /proc/cpuinfo |grep "processor"|wc -l)
+threads_num=$(($cpu*$cpu_cores*$core_processor))
+echo "threads_num = $threads_num"
+
+
+#########################################
 # create experience directory
 #########################################
 if [ -d $experience_dir ]
@@ -70,13 +80,13 @@ if [ $assembler == "miniasm" ]
         # minimap2
         if [ $company == "pacbio" ]
             then
-                echo "#### Start: minimap2 -x ava-pb -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####"
-                (time perl $scripts_path/memory3.pl memoryrecord_1 "minimap2 -x ava-pb -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz") >& timelog1.txt
-                echo -e "#### End: minimap2 -x ava-pb -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####\n"
+                echo "#### Start: minimap2 -x ava-pb -t$threads_num $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####"
+                (time perl $scripts_path/memory3.pl memoryrecord_1 "minimap2 -x ava-pb -t$threads_num $assemble_file $assemble_file | gzip -1 > reads.paf.gz") >& timelog1.txt
+                echo -e "#### End: minimap2 -x ava-pb -t$threads_num $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####\n"
         else
-            echo "#### Start: minimap2 -x ava-ont -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####"
-            (time perl $scripts_path/memory3.pl memoryrecord_1 "minimap2 -x ava-ont -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz") >& timelog1.txt
-            echo -e "#### End: minimap2 -x ava-ont -t8 $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####\n"
+            echo "#### Start: minimap2 -x ava-ont -t$threads_num $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####"
+            (time perl $scripts_path/memory3.pl memoryrecord_1 "minimap2 -x ava-ont -t$threads_num $assemble_file $assemble_file | gzip -1 > reads.paf.gz") >& timelog1.txt
+            echo -e "#### End: minimap2 -x ava-ont -t$threads_num $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####\n"
         fi
 
         # miniasm
