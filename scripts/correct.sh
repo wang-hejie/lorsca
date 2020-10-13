@@ -168,7 +168,7 @@ elif [ $tools == "mecat2" ]
         echo "CNS_OVLP_OPTIONS=\"-kmer_size 13\"" >> $config_file
         echo "CNS_PCAN_OPTIONS=\"-p 100000 -k 100\"" >> $config_file
         echo "CNS_OPTIONS=\"\"" >> $config_file
-        echo "CNS_OUTPUT_COVERAGE=30" >> $config_file
+        echo "CNS_OUTPUT_COVERAGE=$folds" >> $config_file
         echo "TRIM_OVLP_OPTIONS=\"-skip_overhang\"" >> $config_file
         echo "TRIM_PM4_OPTIONS=\"-p 100000 -k 100\"" >> $config_file
         echo "TRIM_LCR_OPTIONS=\"\"" >> $config_file
