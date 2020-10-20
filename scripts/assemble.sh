@@ -31,10 +31,11 @@ scripts_path="$(cd `dirname $0`; pwd)"
 #########################################
 # set threads num
 #########################################
-cpu=$(cat /proc/cpuinfo |grep "physical id"|sort|uniq|wc -l)
-cpu_cores=$(cat /proc/cpuinfo |grep "cpu cores"|uniq|wc -l)
-core_processor=$(cat /proc/cpuinfo |grep "processor"|wc -l)
-threads_num=$(($cpu*$cpu_cores*$core_processor))
+# cpu=$(cat /proc/cpuinfo |grep "physical id"|sort|uniq|wc -l)
+# cpu_cores=$(cat /proc/cpuinfo |grep "cpu cores"|uniq|wc -l)
+# core_processor=$(cat /proc/cpuinfo |grep "processor"|wc -l)
+# threads_num=$(($cpu*$cpu_cores*$core_processor))
+threads_num=$(nproc)
 echo "threads_num = $threads_num"
 
 
