@@ -26,8 +26,8 @@ corrected_reads_file="$experience_dir/correct/corrected_longreads.fasta"  # 纠�
 contig_file="$experience_dir/assemble/contig.fasta"  # 组装产生的contig文件
 
 # 参考基因组
-ref_file_fna="$home/datasets/Reference/$species/*.fna"
-ref_file_gff="$home/datasets/Reference/$species/*.gff"
+ref_file_fna=$(ls $home/datasets/Reference/$species/*.fna)
+ref_file_gff=$(ls $home/datasets/Reference/$species/*.gff)
 
 cd $experience_dir
 
@@ -113,9 +113,9 @@ echo -e "\e[1;32m #### "$tools" count step 2/3: blasr #### \e[0m"
 echo "#### Start: blasr $count_file $ref_file_fna --nproc $threads_num -m 5 ####"
 blasr $count_file $ref_file_fna --nproc $threads_num -m 5 > blasr_output.txt 2>&1
 echo -e "#### End: blasr $count_file $ref_file_fna --nproc $threads_num -m 5 ####\n"
-echo "#### Start: python3 $scripts_path/py_count/py_count.py $species $folds $tools ####"
-python3 $scripts_path/py_count/py_count.py $species $folds $tools
-echo -e "#### End: python3 $scripts_path/py_count/py_count.py $species $folds $tools ####\n"
+echo "#### Start: python3 $scripts_path/py_count/py_count.py $species $folds $tools $ref_file_fna ####"
+python3 $scripts_path/py_count/py_count.py $species $folds $tools $ref_file_fna
+echo -e "#### End: python3 $scripts_path/py_count/py_count.py $species $folds $tools $ref_file_fna ####\n"
 
 
 

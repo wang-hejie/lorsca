@@ -14,6 +14,7 @@ import os
 species = sys.argv[1]
 folds = sys.argv[2]
 tools = sys.argv[3]
+ref_file_fna = sys.argv[4]
 
 home = os.getenv('HOME')
 dataset_dir = f'{home}/datasets'
@@ -28,10 +29,6 @@ else:
 # contig_file = f'{experience_dir}/assemble/contig.fasta'  # 使用纠错后fa文件组装好的contig
 
 # raw_reads_file_fa = f'{dataset_dir}/Reads/{species}/raw_longreads_{folds}.fasta'  # 原始long reads的fa文件
-if species == 'ecoli':  # 参考基因组
-    ref_file_fna = f'{dataset_dir}/Reference/{species}/GCF_000005845.2_ASM584v2_genomic.fna'
-else:
-    ref_file_fna = f'{dataset_dir}/Reference/{species}/GCF_000146045.2_R64_genomic.fna'
 
 blasr_output_file = f'{experience_dir}/blasr_result/blasr_output.txt'  # blasr的输出文件
 blasr_count_file = f'{experience_dir}/blasr_result/blasr_count.txt'  # 对blasr输出文件计算之后得到的统计文件
