@@ -19,6 +19,7 @@ experience_dir="$home/experience/"$species"_"$folds"/$tools"  # 执行统计的�
 dnadiff_dir="$experience_dir/dnadiff_result"  # 执行dnadiff的目录
 blasr_dir="$experience_dir/blasr_result"  # 执行blasr的目录
 quast_dir="$experience_dir/quast_result"  # 执行quast的目录
+minimap2_dir="$experience_dir/minimap2_result"  # 执行minimap2的目录
 raw_dir="$home/experience/"$species"_"$folds"/raw"  # raw data统计目录
 raw_file_fa="$raw_dir/raw_data/raw_longreads_"$folds"x.fasta"  # 原始long reads的fasta
 corrected_reads_file="$experience_dir/correct/corrected_longreads.fasta"  # 纠错后reads文件
@@ -47,7 +48,7 @@ echo "threads_num = $threads_num"
 #########################################
 # create experience directory
 #########################################
-dir=($dnadiff_dir $blasr_dir $quast_dir)
+dir=($dnadiff_dir $blasr_dir $quast_dir $minimap2_dir)
 for i in ${dir[@]}
     do
         if [ -d $i ]
@@ -74,15 +75,30 @@ fi
 
 #### dnadiff ####
 # aarl, iden, cov
-cd $dnadiff_dir
+# cd $dnadiff_dir
 
-echo -e "\e[1;32m #### "$tools" count step 1/3: dnadiff #### \e[0m"
-echo "#### Start: dnadiff $ref_file_fna $count_file ####"
-dnadiff $ref_file_fna $count_file
-echo -e "#### End: dnadiff $ref_file_fna $count_file ####\n"
-echo "#### Start: mv out.report dnadiff_output.txt ####"
-mv out.report dnadiff_output.txt
-echo -e "#### End: mv out.report dnadiff_output.txt ####\n"
+# echo -e "\e[1;32m #### "$tools" count step 1/3: dnadiff #### \e[0m"
+# echo "#### Start: dnadiff $ref_file_fna $count_file ####"
+# dnadiff $ref_file_fna $count_file
+# echo -e "#### End: dnadiff $ref_file_fna $count_file ####\n"
+# echo "#### Start: mv out.report dnadiff_output.txt ####"
+# mv out.report dnadiff_output.txt
+# echo -e "#### End: mv out.report dnadiff_output.txt ####\n"
+
+
+#### minimap2 ####
+# aarl, iden, cov
+source activate
+source deactivate
+conda activate miniasm
+cd $minimap2_dir
+
+echo -e "\e[1;32m #### "$tools" count step 1/3: minimap2 #### \e[0m"
+echo "#### Start: minimap2 -ax map-pb -t$threads_num $ref_file_fna $count_file > aln.sam ####"
+minimap2 -ax map-pb -t$threads_num $ref_file_fna $count_file > aln.sam
+echo -e "#### End: minimap2 -ax map-pb -t$threads_num $ref_file_fna $count_file > aln.sam ####\n"
+
+
 
 #### blasr ####
 # ins, del, sub
@@ -98,6 +114,7 @@ echo -e "#### End: blasr $count_file $ref_file_fna --nproc $threads_num -m 5 ###
 echo "#### Start: python3 $scripts_path/py_count/py_count.py $species $folds $tools ####"
 python3 $scripts_path/py_count/py_count.py $species $folds $tools
 echo -e "#### End: python3 $scripts_path/py_count/py_count.py $species $folds $tools ####\n"
+
 
 
 #### quast ####
