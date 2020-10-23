@@ -31,7 +31,7 @@ print(f'species = {species}\n'
       f'tools = {tools}\n'
       f'company = {company}\n'
       f'assembler = {assembler}')
-script_path = os.path.abspath(__file__)  # 软件根目录/self-correction.py
+script_path = os.path.abspath(__file__)  # 软件根目录/lorsca.py
 software_path = os.path.abspath(os.path.dirname(script_path) + os.path.sep + ".")  # 软件根目录
 
 subprocess.call(f'bash {software_path}/scripts/correct.sh {species} {folds} {tools} {company}', shell=True)

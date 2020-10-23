@@ -14,6 +14,7 @@ def standard_fasta(input_file, output_file):
                 line = f_in.readline()
                 if line == '':
                     f_out.write(''.join(temp_list))
+                    f_out.write('\n')
                     break  # 文件已读完
                 if '>' in line:  # 读到序列头
                     if temp_list:  # 已经有序列被记录

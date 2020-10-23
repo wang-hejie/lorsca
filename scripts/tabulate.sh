@@ -88,10 +88,10 @@ sub_rate=$(echo "$(grep mismatch_rate $blasr_stat_file | awk '{printf $2}') * 10
 
 
 # about dnadiff_output.txt
-# aarl=$(grep AvgLength $dnadiff_stat_file | head -1 | awk '{printf ("%.0f", $3)}')
-# # iden=$(grep AvgIdentity $dnadiff_stat_file | head -1 | awk '{printf $3}')
-# seq_cov=$(grep AlignedBases $dnadiff_stat_file | head -1 | awk '{printf $2}' | cut -d '(' -f2 | cut -d '%' -f1)
-# aligned_rate=$(grep AlignedBases $dnadiff_stat_file | head -1 | awk '{printf $3}' | cut -d '(' -f2 | cut -d '%' -f1)
+aarl=$(grep AvgLength $dnadiff_stat_file | head -1 | awk '{printf ("%.0f", $3)}')
+# iden=$(grep AvgIdentity $dnadiff_stat_file | head -1 | awk '{printf $3}')
+seq_cov=$(grep AlignedBases $dnadiff_stat_file | head -1 | awk '{printf $2}' | cut -d '(' -f2 | cut -d '%' -f1)
+aligned_rate=$(grep AlignedBases $dnadiff_stat_file | head -1 | awk '{printf $3}' | cut -d '(' -f2 | cut -d '%' -f1)
 
 
 # sensitivity, seq_accuracy
