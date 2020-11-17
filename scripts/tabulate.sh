@@ -26,7 +26,8 @@ else
 fi
 
 assemble_dir="$experience_dir/assemble"       # 执行组装的目录
-dnadiff_dir="$experience_dir/dnadiff_result"  # 执行dnadiff的目录
+# dnadiff_dir="$experience_dir/dnadiff_result"  # 执行dnadiff的目录
+minimap2_dir="$experience_dir/minimap2_result"  # 执行minimap2的目录
 blasr_dir="$experience_dir/blasr_result"      # 执行blasr的目录
 quast_dir="$experience_dir/quast_result"      # 执行quast的目录
 raw_blasr_dir="$raw_dir/blasr_result"         # raw data的blasr目录
@@ -44,16 +45,23 @@ quast_stat_file="$quast_dir/quast_output.txt"
 raw_blasr_stat_file="$raw_blasr_dir/blasr_count.txt"
 raw_reads_stat_file="$raw_dir/raw_data/*.log"
 
+# minimap2 + samtools结果
+alnrate_aarl_filename="stats.txt"
+alnrate_aarl_file="$minimap2_dir/$alnrate_aarl_filename"
+cov_filename="coverage.txt"
+cov_file="$minimap2_dir/$cov_filename"
+
 table_seq="$experience_dir/table_seq.csv"
 table_contig="$experience_dir/table_contig.csv"
 
 #scripts path
 scripts_path="$(cd `dirname $0`; pwd)"
 
+
 #########################################
 # Tabulate the statistical results of seq
 #########################################
-# about corrected_longreads.log
+##### about corrected_longreads.log #####
 sequence="$(grep output_reads_num $reads_stat_file | awk '{printf $2}')"
 mean_bp="$(grep output_mean_bp $reads_stat_file | awk '{printf ("%.0f", $2)}')"
 depa="$(grep output_depth $reads_stat_file | awk '{printf ("%.2f", $2)}')"
@@ -81,18 +89,34 @@ if [ $tools != "raw" ]
             done
 fi
 
-# about blasr_count.txt
+
+##### about dnadiff_output.txt #####
+# aarl=$(grep AvgLength $dnadiff_stat_file | head -1 | awk '{printf ("%.0f", $3)}')
+# # iden=$(grep AvgIdentity $dnadiff_stat_file | head -1 | awk '{printf $3}')
+# seq_cov=$(grep AlignedBases $dnadiff_stat_file | head -1 | awk '{printf $2}' | cut -d '(' -f2 | cut -d '%' -f1)
+# aligned_rate=$(grep AlignedBases $dnadiff_stat_file | head -1 | awk '{printf $3}' | cut -d '(' -f2 | cut -d '%' -f1)
+
+
+##### about minimap2 + samtools #####
+# extract alignment rate
+total_length=$(grep 'total length' $alnrate_aarl_file | awk '{printf $4}')  # 纠错后输出总长
+mapped_length=$(grep 'bases mapped (cigar)' $alnrate_aarl_file | head -1 | awk '{printf $5}')  # 比对上的base长度
+aln_rate=$(echo "scale=6;($mapped_length / $total_length) * 100" | bc | awk '{printf ("%.2f", $1)}')  # aln_rate = 比对上的长度 / 纠错后总长
+
+# extract aarl
+mapped_reads_num=$(grep 'reads mapped' $alnrate_aarl_file | head -1 | awk '{printf $4}')  # 比对上的reads数
+aarl=$(echo "scale=1;$mapped_length / $mapped_reads_num" | bc | awk '{printf ("%.0f", $1)}')  # aarl = 比对上的长度 / 比对上的reads数
+
+# extract coverage
+ref_total_len=$(grep -v "#" $cov_file | awk '{sum += $3}END{print sum}')
+ref_cov_len=$(grep -v "#" $cov_file | awk '{sum += $5}END{print sum}')
+seq_cov=$(echo "scale=6;($ref_cov_len / $ref_total_len) * 100" | bc | awk '{printf ("%.2f", $1)}')
+
+
+##### about blasr_count.txt #####
 ins_rate=$(echo "$(grep ins_rate $blasr_stat_file | awk '{printf $2}') * 100" | bc | awk '{printf ("%.2f", $1)}')
 del_rate=$(echo "$(grep del_rate $blasr_stat_file | awk '{printf $2}') * 100" | bc | awk '{printf ("%.2f", $1)}')
 sub_rate=$(echo "$(grep mismatch_rate $blasr_stat_file | awk '{printf $2}') * 100" | bc | awk '{printf ("%.2f", $1)}')
-
-
-# about dnadiff_output.txt
-aarl=$(grep AvgLength $dnadiff_stat_file | head -1 | awk '{printf ("%.0f", $3)}')
-# iden=$(grep AvgIdentity $dnadiff_stat_file | head -1 | awk '{printf $3}')
-seq_cov=$(grep AlignedBases $dnadiff_stat_file | head -1 | awk '{printf $2}' | cut -d '(' -f2 | cut -d '%' -f1)
-aligned_rate=$(grep AlignedBases $dnadiff_stat_file | head -1 | awk '{printf $3}' | cut -d '(' -f2 | cut -d '%' -f1)
-
 
 # sensitivity, seq_accuracy
 mismatch_num=$(grep mismatch_num $blasr_stat_file | awk '{printf $2}')
@@ -123,14 +147,14 @@ seq_accuracy=$(echo "scale=5;(1-$corrected_error/$aligned_reads_length)*100" | b
 
 # 对seq相关统计结果制表
 echo -e "RunTime(min),CpuTime(min),Mem(Gb),Sequence,Mean(x),DepA(x),Sensitivity,Accuracy(%),Ins(%),Del(%),Sub(%),Alignment rate(%),AARL(bp),Cov(%)" > $table_seq
-echo -e "$correct_real_time,$correct_cpu_time,$correct_mem,$sequence,$mean_bp,$depa,$sensitivity,$seq_accuracy,$ins_rate,$del_rate,$sub_rate,$aligned_rate,$aarl,$seq_cov" >> $table_seq
+echo -e "$correct_real_time,$correct_cpu_time,$correct_mem,$sequence,$mean_bp,$depa,$sensitivity,$seq_accuracy,$ins_rate,$del_rate,$sub_rate,$aln_rate,$aarl,$seq_cov" >> $table_seq
 
 
 
 ############################################
 # Tabulate the statistical results of contig
 ############################################
-# about assemble time and mem
+##### about assemble time and mem #####
 assemble_real_time=0  # 组装真实时间初始化为0
 assemble_cpu_time=0   # 组装cpu时间初始化为0
 assemble_mem=0        # 组装内存初始化为0
@@ -151,7 +175,7 @@ for i in $(find timelog* -type f)
     done
 
 
-# about quast_output.txt
+##### about quast_output.txt #####
 n50=$(grep N50 $quast_stat_file | awk '{printf $2}')  # N50
 ctg_num=$(grep "# contigs" $quast_stat_file | tail -1 | awk '{printf $3}')  # ctg条数
 ctg_cov=$(grep "Genome fraction" $quast_stat_file | awk '{printf ("%.2f", $4)}')  # 参考基因组被ctg覆盖的比例

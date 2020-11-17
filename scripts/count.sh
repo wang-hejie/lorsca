@@ -29,6 +29,12 @@ contig_file="$experience_dir/assemble/contig.fasta"  # 组装产生的contig文�
 ref_file_fna=$(ls $home/datasets/Reference/$species/*.fna)
 ref_file_gff=$(ls $home/datasets/Reference/$species/*.gff)
 
+# 统计minimap2结果的文件
+alnrate_aarl_filename="stats.txt"
+alnrate_aarl_file="$minimap2_dir/$alnrate_aarl_filename"
+cov_filename="coverage.txt"
+cov_file="$minimap2_dir/$cov_filename"
+
 cd $experience_dir
 
 #scripts path
@@ -88,22 +94,31 @@ fi
 # echo -e "#### End: mv out.report dnadiff_output.txt ####\n"
 
 
-#### minimap2 ####
-# aarl, iden, cov
+#### minimap2 + samtools ####
+# aln rate, aarl, cov
 source activate
 source deactivate
 conda activate miniasm
 cd $minimap2_dir
 
-echo -e "\e[1;32m #### "$tools" count step 1/3: minimap2 #### \e[0m"
+echo -e "\e[1;32m #### "$tools" count step 1/3: minimap2 + samtools #### \e[0m"
 echo "#### Start: minimap2 -ax map-pb -t$threads_num $ref_file_fna $count_file > aln.sam ####"
 minimap2 -ax map-pb -t$threads_num $ref_file_fna $count_file > aln.sam
 echo -e "#### End: minimap2 -ax map-pb -t$threads_num $ref_file_fna $count_file > aln.sam ####\n"
 
+# count alignment rate, aarl and coverage by samtools
+source activate
+source deactivate
+conda activate samtools
+
+samtools view -bS "$minimap2_dir"/aln.sam > "$minimap2_dir"/aln.bam
+samtools sort -@ $threads_num -o "$minimap2_dir"/aln.sorted.bam "$minimap2_dir"/aln.bam
+samtools coverage "$minimap2_dir"/aln.sorted.bam > $cov_file
+samtools stats "$minimap2_dir"/aln.sorted.bam > $alnrate_aarl_file
 
 
 #### blasr ####
-# ins, del, sub
+# ins, del, sub, sensitivity, seq accuracy
 source activate
 source deactivate
 conda activate blasr
@@ -120,7 +135,7 @@ echo -e "#### End: python3 $scripts_path/py_count/py_count.py $species $folds $t
 
 
 #### quast ####
-# contig N50, contig number
+# Ctg_num, Cov(%), Accuracy(%), Total length(bp), N50(bp), NGA50(bp), Misassemblies, Duplication ratio
 cd $quast_dir
 
 echo -e "\e[1;32m #### "$tools" count step 3/3: quast #### \e[0m"
