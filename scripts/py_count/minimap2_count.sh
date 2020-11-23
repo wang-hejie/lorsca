@@ -3,7 +3,7 @@
  # @Description: extract statistics alignment rate, aarl and coverage from minimap2 alignment results
  # @Author: Wang Hejie
  # @Date: 2020-11-16 09:07:38
- # @LastEditTime: 2020-11-16 10:45:21
+ # @LastEditTime: 2020-11-18 10:56:47
  # @LastEditors: Wang Hejie
 ### 
 species="$(echo $1 | tr '[:upper:]' '[:lower:]')"

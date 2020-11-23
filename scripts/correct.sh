@@ -416,9 +416,10 @@ elif [ $tools == "daccord" ]
 
         # (3) use daligner for self-comparison
         echo -e "\e[1;32m #### "$tools" correct step 3/5: use daligner for self-comparison #### \e[0m"
-        echo "#### Start: daligner -T63 "$db_name" "$db_name" ####"
-        (time perl $scripts_path/memory3.pl memoryrecord_3 "daligner -T63 "$db_name" "$db_name"") >& timelog3.txt  # 此处若-T大于等于64，就会报错core dumped
-        echo -e "#### End: daligner -T63 "$db_name" "$db_name" ####\n"
+        # -T设置线程数，但大的ref占用内存太多，设置过高线程会报"Segmentation fault (core dumped)"错误
+        echo "#### Start: daligner "$db_name" "$db_name" ####"
+        (time perl $scripts_path/memory3.pl memoryrecord_3 "daligner "$db_name" "$db_name"") >& timelog3.txt
+        echo -e "#### End: daligner "$db_name" "$db_name" ####\n"
 
         # (4) 执行daccord纠错
         # 将结果重定向至文件
@@ -499,9 +500,10 @@ elif [ $tools == "pbdagcon" ]
 
         # (3) use daligner for self-comparison
         echo -e "\e[1;32m #### "$tools" correct step 3/4: use daligner for self-comparison #### \e[0m"
-        echo "#### Start: daligner -T45 "$db_name" "$db_name" ####"
-        (time perl $scripts_path/memory3.pl memoryrecord_3 "daligner -T45 "$db_name" "$db_name"") >& timelog3.txt  # 此处若-T大于等于64，就会报错core dumped
-        echo -e "#### End: daligner -T45 "$db_name" "$db_name" ####\n"
+        # -T设置线程数，但大的ref占用内存太多，设置过高线程会报"Segmentation fault (core dumped)"错误
+        echo "#### Start: daligner "$db_name" "$db_name" ####"
+        (time perl $scripts_path/memory3.pl memoryrecord_3 "daligner "$db_name" "$db_name"") >& timelog3.txt
+        echo -e "#### End: daligner "$db_name" "$db_name" ####\n"
 
         # (4) 执行pbdagcon(dazcon)纠错
         # 将结果重定向至标准化校正数据文件名
