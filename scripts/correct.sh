@@ -508,9 +508,9 @@ elif [ $tools == "pbdagcon" ]
         # (4) 执行pbdagcon(dazcon)纠错
         # 将结果重定向至标准化校正数据文件名
         echo -e "\e[1;32m #### "$tools" correct step 4/4: correct and standard file name #### \e[0m"
-        echo "#### Start: dazcon -ox -j 512 -s $db_name -a "$db_prefix"."$db_prefix".las > $standard_corrected_file_name ####"
-        (time perl $scripts_path/memory3.pl memoryrecord_4 "dazcon -ox -j 512 -s $db_name -a "$db_prefix"."$db_prefix".las > $standard_corrected_file_name") >& timelog4.txt
-        echo -e "#### End: dazcon -ox -j 512 -s $db_name -a "$db_prefix"."$db_prefix".las > $standard_corrected_file_name ####\n"
+        echo "#### Start: dazcon -ox -j $threads_num -s $db_name -a "$db_prefix"."$db_prefix".las > $standard_corrected_file_name ####"
+        (time perl $scripts_path/memory3.pl memoryrecord_4 "dazcon -ox -j $threads_num -s $db_name -a "$db_prefix"."$db_prefix".las > $standard_corrected_file_name") >& timelog4.txt
+        echo -e "#### End: dazcon -ox -j $threads_num -s $db_name -a "$db_prefix"."$db_prefix".las > $standard_corrected_file_name ####\n"
 
 
 else
