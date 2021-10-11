@@ -3,7 +3,7 @@ import os
 import csv
 
 
-def reads_stat(reads_file, ref_file):
+def reads_stat(reads_file, ref_file, log_path):
     """
     统计fasta文件中序列个数，以及相对于参考基因组的深度
 
@@ -11,7 +11,7 @@ def reads_stat(reads_file, ref_file):
     :param ref_file: 参考基因组路径
     :return: 深度，序列个数，最短序列长度，最长序列长度，平均序列长度
     """
-    log_file = reads_file.split('.')[0] + '.log'
+    log_file = log_path + '/corrected_longreads.log'
     reads_num = 0          # 统计reads的条数
     min_bp = float('inf')  # 最短reads所含碱基数
     max_bp = 0             # 最长reads所含碱基数

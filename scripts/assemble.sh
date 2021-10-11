@@ -1,28 +1,20 @@
 #!/bin/bash
 
 #########################################
-#  $1: species - ecoli, scere, dmela, athal, human
-#  $2: folds - 10, 30, 50, 75, 100
-#  $3: tools - raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord, sprai, pbdagcon
-#  $4: company - pacbio, ont
-#  $5: assembler - miniasm
-#  (all varaibles are converted to the lower cases)
+#  $1: corrected_reads_file - the corrected reads file path
+#  $2: experience_dir - the experience root path
 #########################################
-species="$(echo $1 | tr '[:upper:]' '[:lower:]')"
-folds="$(echo $2 | tr '[:upper:]' '[:lower:]')"
-tools="$(echo $3 | tr '[:upper:]' '[:lower:]')"
-company="$(echo $4 | tr '[:upper:]' '[:lower:]')"
-assembler="$(echo $5 | tr '[:upper:]' '[:lower:]')"
+corrected_reads_file=$1
+experience_dir=$2
 
 
 #########################################
 # set paths
 #########################################
-home="/home/wanghejie"
-experience_dir="$home/experience/"$species"_"$folds"/$tools/assemble"
+assemble_dir=$experience_dir"/assemble"
 standard_assemble_file_name="contig.fasta"
-corrected_reads_file="$home/experience/"$species"_"$folds"/$tools/correct/corrected_longreads.fasta"  # 纠错后reads文件
-raw_file_fa="$home/experience/"$species"_"$folds"/$tools/raw_data/raw_longreads_"$folds"x.fasta"  # 原始long reads的fasta
+echo $assemble_dir
+
 
 #scripts path
 scripts_path="$(cd `dirname $0`; pwd)"
@@ -42,67 +34,46 @@ echo "threads_num = $threads_num"
 #########################################
 # create experience directory
 #########################################
-if [ -d $experience_dir ]
+if [ -d $assemble_dir ]
     then
-        echo -e "\e[1;35m #### Warning: $experience_dir Exist! #### \e[0m"  # Warning
-        rm -rf $experience_dir
+        echo -e "\e[1;35m #### Warning: $assemble_dir Exist! #### \e[0m"  # Warning
+        rm -rf $assemble_dir
         echo -e "\e[1;35m #### Warning end: Already remove it. #### \e[0m"
 fi
-mkdir -p $experience_dir
-cd $experience_dir
+mkdir -p $assemble_dir
+cd $assemble_dir
 
 
 #########################################
 # Set assembler path
 #########################################
-if [ $assembler == "miniasm" ]
-    then
-        source activate
-        source deactivate
-        conda activate miniasm
-fi
+source activate
+source deactivate
+conda activate miniasm
 
 
 #########################################
 # Running the tools 
 #########################################
 #### 1. miniasm ####
-if [ $assembler == "miniasm" ]
-    then
-        # set file to be assembled
-        echo -e "\e[1;32m #### "$tools" assemble step 1/3: minimap2 #### \e[0m"
-        if [ $tools == "raw" ]
-            then
-                assemble_file=$raw_file_fa
-        else
-            assemble_file=$corrected_reads_file
-        fi
+# set file to be assembled
+echo -e "\e[1;32m #### assemble step 1/3: minimap2 #### \e[0m"
+assemble_file=$corrected_reads_file
 
-        # minimap2
-        if [ $company == "pacbio" ]
-            then
-                echo "#### Start: minimap2 -x ava-pb -t$threads_num $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####"
-                (time perl $scripts_path/memory3.pl memoryrecord_1 "minimap2 -x ava-pb -t$threads_num $assemble_file $assemble_file | gzip -1 > reads.paf.gz") >& timelog1.txt
-                echo -e "#### End: minimap2 -x ava-pb -t$threads_num $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####\n"
-        else
-            echo "#### Start: minimap2 -x ava-ont -t$threads_num $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####"
-            (time perl $scripts_path/memory3.pl memoryrecord_1 "minimap2 -x ava-ont -t$threads_num $assemble_file $assemble_file | gzip -1 > reads.paf.gz") >& timelog1.txt
-            echo -e "#### End: minimap2 -x ava-ont -t$threads_num $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####\n"
-        fi
+# minimap2
+echo "#### Start: minimap2 -x ava-pb -t$threads_num $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####"
+minimap2 -x ava-pb -t$threads_num $assemble_file $assemble_file | gzip -1 > reads.paf.gz
+echo -e "#### End: minimap2 -x ava-pb -t$threads_num $assemble_file $assemble_file | gzip -1 > reads.paf.gz ####\n"
 
-        # miniasm
-        echo -e "\e[1;32m #### "$tools" assemble step 2/3: miniasm #### \e[0m"
-        echo "#### Start: miniasm -f $assemble_file reads.paf.gz > reads.gfa ####"
-        (time perl $scripts_path/memory3.pl memoryrecord_2 "miniasm -f $assemble_file reads.paf.gz > reads.gfa") >& timelog2.txt
-        echo -e "#### End: miniasm -f $assemble_file reads.paf.gz > reads.gfa ####\n"
+# miniasm
+echo -e "\e[1;32m #### assemble step 2/3: miniasm #### \e[0m"
+echo "#### Start: miniasm -f $assemble_file reads.paf.gz > reads.gfa ####"
+miniasm -f $assemble_file reads.paf.gz > reads.gfa
+echo -e "#### End: miniasm -f $assemble_file reads.paf.gz > reads.gfa ####\n"
 
-        # 从重叠图文件中提取contig
-        echo -e "\e[1;32m #### "$tools" assemble step 3/3: extract contig #### \e[0m"
-        echo '#### Start: awk ####'
-        awk '/^S/{print ">"$2"\n"$3}' reads.gfa | fold > $standard_assemble_file_name
-        echo -e '#### End: awk ####\n'
+# 从重叠图文件中提取contig
+echo -e "\e[1;32m #### assemble step 3/3: extract contig #### \e[0m"
+echo '#### Start: awk ####'
+awk '/^S/{print ">"$2"\n"$3}' reads.gfa | fold > $standard_assemble_file_name
+echo -e '#### End: awk ####\n'
 
-
-else
-    echo -e "\e[1;31m #### Error: $assembler NOT EXIST! #### \e[0m"  # Error
-fi

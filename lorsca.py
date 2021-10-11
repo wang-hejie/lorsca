@@ -1,40 +1,65 @@
+'''
+Description: 将整个工作流包装成软件self-correction
+             使用-h查看使用说明
+Author: Wang Hejie
+Date: 2021-10-09 21:13:23
+LastEditTime: 2021-10-09 22:13:28
+LastEditors: Wang Hejie
+'''
 #!/usr/bin/python3
-# -*- encoding: utf-8 -*-
-
-"""
-将整个工作流包装成软件self-correction
-使用-h查看使用说明
-"""
+# -*- coding: UTF-8 -*-
 
 import argparse
 import subprocess
 import os
+import datetime
 
 
+# 执行-h 或 -help 的说明
 parser = argparse.ArgumentParser(description='Automate self-correcting workflow scripts. '
-                                             'workflow: correct->assemble->count')
-parser.add_argument('-s', '--species', type=str, help='ecoli, scere, dmela, athal, human')
-parser.add_argument('-f', '--folds', type=str, help='10, 30, 50, 75, 100')
-parser.add_argument('-t', '--tools', type=str, default='raw', help='raw, mecat2, falcon, lorma, canu, pbcr, flas, consent, daccord, sprai, pbdagcon')
-parser.add_argument('-c', '--company', type=str, default='pacbio', help='pacbio, ont')
-parser.add_argument('-a', '--assembler', type=str, default='miniasm', help='miniasm')
+                                             'workflow: assemble->count->tabulate')
+parser.add_argument('-c', '--correct', type=str, help='set the corrected reads file path, must .fasta file')
+parser.add_argument('-o', '--original', type=str, help='set the original reads file path, must .fasta file')
+parser.add_argument('-f', '--fna', type=str, help='set the reference genome .fna file path')
+parser.add_argument('-g', '--gff', type=str, help='set the reference genome .gff file path')
 args = parser.parse_args()
 
-species = args.species      # 纠错物种
-folds = args.folds          # 纠错raw data深度
-tools = args.tools          # 纠错工具。若为raw，则不纠错直接组装
-company = args.company      # raw data数据类型
-assembler = args.assembler  # 装配工具
+corrected_reads_file = args.correct    # 纠错后reads
+original_reads_file = args.original    # 原始reads
+fna_file = args.fna  # 参考基因组fna文件
+gff_file = args.gff  # 参考基因组gff文件
 
-print(f'species = {species}\n'
-      f'folds = {folds}\n'
-      f'tools = {tools}\n'
-      f'company = {company}\n'
-      f'assembler = {assembler}')
+print(f'corrected_reads_file = {corrected_reads_file}\n'
+      f'original_reads_file = {original_reads_file}\n'
+      f'fna_file = {fna_file}\n'
+      f'gff_file = {gff_file}\n')
+if not os.path.isfile(corrected_reads_file) or corrected_reads_file.split('.')[-1] != 'fasta':
+    print(f'{corrected_reads_file} is not .fasta file!')
+    exit(0)
+if not os.path.isfile(original_reads_file) or original_reads_file.split('.')[-1] != 'fasta':
+    print(original_reads_file.split('.')[-1])
+    print(f'{original_reads_file} is not .fasta file!')
+    exit(0)
+if not os.path.isfile(fna_file):
+    print(f'{fna_file} is not file!')
+    exit(0)
+if not os.path.isfile(gff_file):
+    print(f'{gff_file} is not file!')
+    exit(0)
+
+# 新建实验用文件夹
+home = os.getenv('HOME')
+datetime = '_'.join(str(datetime.datetime.now()).split())
+print(datetime)
+experience_dir = f'{home}/lorsca_experience/{datetime}'
+os.makedirs(experience_dir)
+
 script_path = os.path.abspath(__file__)  # 软件根目录/lorsca.py
 software_path = os.path.abspath(os.path.dirname(script_path) + os.path.sep + ".")  # 软件根目录
 
-subprocess.call(f'bash {software_path}/scripts/correct.sh {species} {folds} {tools} {company}', shell=True)
-subprocess.call(f'bash {software_path}/scripts/assemble.sh {species} {folds} {tools} {company} {assembler}', shell=True)
-subprocess.call(f'bash {software_path}/scripts/count.sh {species} {folds} {tools}', shell=True)
-subprocess.call(f'bash {software_path}/scripts/tabulate.sh {species} {folds} {tools}', shell=True)
+subprocess.call(f'bash {software_path}/scripts/assemble.sh {corrected_reads_file} {experience_dir}', shell=True)
+
+subprocess.call(f'bash {software_path}/scripts/count.sh {original_reads_file} {fna_file} {gff_file} {experience_dir}/raw', shell=True)
+subprocess.call(f'bash {software_path}/scripts/count.sh {corrected_reads_file} {fna_file} {gff_file} {experience_dir}', shell=True)
+
+subprocess.call(f'bash {software_path}/scripts/tabulate.sh {corrected_reads_file} {experience_dir}', shell=True)
