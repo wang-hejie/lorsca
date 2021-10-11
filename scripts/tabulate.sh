@@ -102,7 +102,7 @@ seq_accuracy=$(echo "scale=5;(1-$corrected_error/$aligned_reads_length)*100" | b
 
 
 # 对seq相关统计结果制表
-echo -e "Sequence,Mean(x),DepA(x),Sensitivity,Accuracy(%),Ins(%),Del(%),Sub(%),Alignment rate(%),AARL(bp),Cov(%)" > $table_seq
+echo -e "Sequence num,Average output read length,Output depth(x),Sensitivity,Accuracy(%),Ins(%),Del(%),Sub(%),Alignment rate(%),AARL(bp),Genome coverage(%)" > $table_seq
 echo -e "$sequence,$mean_bp,$depa,$sensitivity,$seq_accuracy,$ins_rate,$del_rate,$sub_rate,$aln_rate,$aarl,$seq_cov" >> $table_seq
 
 
@@ -127,6 +127,6 @@ misassemblies=$(grep "# misassemblies" $quast_stat_file | head -1 | awk '{printf
 
 
 # 对contig相关统计结果制表
-echo -e "Ctg_num,Cov(%),Accuracy(%),Total length(bp),N50(bp),NGA50(bp),Misassemblies,Duplication ratio" > $table_contig
+echo -e "Ctg num,Genome coverage(%),Accuracy(%),Total length(bp),N50(bp),NGA50(bp),Misassemblies,Duplication ratio" > $table_contig
 echo -e "$ctg_num,$ctg_cov,$ctg_accuracy,$total_length,$n50,$nga50,$misassemblies,$dup_ratio" >> $table_contig
 
