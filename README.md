@@ -2,14 +2,12 @@
  * @Description: LoRSCA user handbook
  * @Author: Wang Hejie
  * @Date: 2021-10-11 10:03:38
- * @LastEditTime: 2021-10-11 11:16:36
+ * @LastEditTime: 2021-10-12 11:15:37
  * @LastEditors: Wang Hejie
 -->
 # Introduction
 LoRSCA is a software that evaluates existing self-correction algorithms for PacBio long reads.
-
 Output `eleven` evaluation metrics related to error corrected reads and `eight` evaluation metrics related to assembly.
-
 The assembly steps are integrated. The error corrected reads are assembled by [Miniasm](https://github.com/lh3/miniasm).
 
 # Installation
@@ -36,3 +34,13 @@ $ conda create -n blasr blasr
 - Step 4: Clone the LoRSCA repository locally.
 
 # Quick Start
+Use LoRSCA to quickly evaluate the error correction quality of the third-generation sequencing data.
+
+In addition to the corrected reads file, the original reads file and the reference genome files need to be provided. The required input files are as follows: 
+- corrected reads file, `.fasta`
+- original reads file, `.fasta`
+- reference genome `.fna` file
+- reference genome `.gff` file
+
+
+
